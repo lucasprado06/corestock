@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}OMS - Office Supply Manager{% endblock %}</title>
+    <style>
+        /* Estilo comum para todas as páginas */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .header-bar .logo {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #0056b3;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-info a {
+            color: #dc3545;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .nav-bar {
+            display: flex;
+            justify-content: flex-start;
+            gap: 20px;
+            background-color: #e9ecef;
+            padding: 15px 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .nav-bar a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .nav-bar a:hover {
+            background-color: #d1e2ff;
+            text-decoration: none;
+        }
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        .alert-warning {
+            color: #856404;
+            background-color: #fff3cd;
+            border-color: #ffeeba;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-bar">
+            <span class="logo">CoreStock</span>
+            {% if 'user' in session %}
+            <div class="user-info">
+                <p>Olá, {{ session.user.nome }}!</p>
+                <a href="{{ url_for('logout') }}">Sair</a>
+            </div>
+            {% endif %}
+        </div>
+        <div class="nav-bar">
+            {% if 'user' in session %}
+                {% if session.user.permissao == 'administrador' %}
+                    <a href="{{ url_for('pendentes') }}">Requisições Pendentes</a>
+                    <a href="{{ url_for('separados') }}">Requisições Separadas</a>
+                    <a href="{{ url_for('historico') }}">Histórico de Requisições</a>
+                    <a href="{{ url_for('gerenciar_materiais_escritorio') }}">Gerenciar Materiais</a>
+                    <a href="{{ url_for('gerenciar_usuarios') }}">Gerenciar Usuários</a>
+                    <a href="{{ url_for('cadastro') }}">Cadastrar Usuário</a>
+                    <a href="{{ url_for('gerenciar_departamentos') }}">Gerenciar Departamentos</a>
+                {% else %}
+                    <a href="{{ url_for('fazer_requisicao') }}">Fazer Requisição</a>
+                    <a href="{{ url_for('historico') }}">Meu Histórico</a>
+                    <a href="{{ url_for('trocar_senha') }}">Trocar Senha</a>
+                {% endif %}
+            {% endif %}
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}
+        {% endblock %}
+    </div>
+</body>
+</html>

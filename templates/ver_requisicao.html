@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalhes da Requisição #{{ requisicao.id }}{% endblock %}
+
+{% block content %}
+    <div class="requisicao-card" id="area-impressao">
+        <div class="card-header">
+            <h2>Requisição {{ requisicao.id }}</h2>
+            <span class="status-badge status-{{ requisicao.status }}">{{ requisicao.status | upper }}</span>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <strong>Solicitante:</strong>
+                <span>{{ requisicao.nome }}</span>
+            </div>
+            <div class="info-item">
+                <strong>Registro (ID):</strong>
+                <span>{{ requisicao.registro }}</span>
+            </div>
+            <div class="info-item">
+                <strong>Departamento:</strong>
+                <span>{{ requisicao.departamento }}</span>
+            </div>
+            <div class="info-item">
+                <strong>Data de Envio:</strong>
+                <span>{{ requisicao.data }}</span>
+            </div>
+            {% if requisicao.data_retirada %}
+            <div class="info-item">
+                <strong>Data de Retirada:</strong>
+                <span>{{ requisicao.data_retirada }}</span>
+            </div>
+            {% endif %}
+            {% if requisicao.data_conclusao %}
+            <div class="info-item">
+                <strong>Data de Conclusão:</strong>
+                <span>{{ requisicao.data_conclusao }}</span>
+            </div>
+            {% endif %}
+            <!-- Dentro do bloco de informações gerais da requisição -->
+            {% if requisicao.separado_por %}
+                <div class="info-item">
+                    <strong>Separado por:</strong>
+                    <span>{{ requisicao.separado_por }}</span>
+                </div>
+            {% endif %}
+        </div>
+
+        <h3 class="section-title">Itens Solicitados</h3>
+        <table class="table-detalhes">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Descrição do Item</th>
+                    <th style="text-align: center;">Quantidade</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in requisicao.itens %}
+                <tr>
+                    <td><code>{{ item.codigo }}</code></td>
+                    <td>{{ item.nome }}</td>
+                    <td style="text-align: center;"><strong>{{ item.quantidade }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Ações do Rodapé (Escondidas na hora de imprimir) -->
+        <div class="actions-bar no-print">
+            <a href="{{ request.referrer or url_for('historico') }}" class="btn btn-secondary">
+                ← Voltar
+            </a>
+            <button type="button" onclick="window.print()" class="btn btn-primary">
+                🖨️ Imprimir Requisição
+            </button>
+        </div>
+    </div>
+
+    <style>
+        .requisicao-card {
+            max-width: 800px;
+            margin: 20px auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e0e0e0;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            color: #2c3e50;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .status-pendente { background-color: #fff3cd; color: #856404; }
+        .status-separado { background-color: #cce5ff; color: #004085; }
+        .status-concluida { background-color: #d4edda; color: #155724; }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        .info-item strong {
+            display: block;
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+        }
+
+        .info-item span {
+            font-size: 15px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .section-title {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .table-detalhes {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+        }
+
+        .table-detalhes th, .table-detalhes td {
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .table-detalhes th {
+            background-color: #f1f3f5;
+            color: #495057;
+            font-weight: 600;
+        }
+
+        .table-detalhes tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        code {
+            background-color: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #495057;
+        }
+
+        .actions-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 20px;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .btn-secondary { background-color: #6c757d; color: white; }
+        .btn-secondary:hover { background-color: #5a6268; }
+
+        .btn-primary { background-color: #0d6efd; color: white; }
+        .btn-primary:hover { background-color: #0b5ed7; }
+
+        /* Regra de Impressão: Esconde todo o conteúdo externo da página base */
+        @media print {
+            body * {
+                visibility: hidden !important;
+            }
+
+            /* Torna visível apenas o card da requisição e seus filhos */
+            #area-impressao, #area-impressao * {
+                visibility: visible !important;
+            }
+
+            /* Posiciona o card exatamente no topo da página impressa */
+            #area-impressao {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            /* Oculta os botões "Voltar" e "Imprimir" da folha impressa */
+            .no-print {
+                display: none !important;
+            }
+
+            .table-detalhes th {
+                background-color: #eee !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+{% endblock %}    

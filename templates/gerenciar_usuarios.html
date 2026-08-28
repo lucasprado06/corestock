@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Gerenciar Usuários{% endblock %}
+
+{% block content %}
+    <h1>Gerenciar Usuários</h1>
+    {% if usuarios %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Registro</th>
+                    <th>Departamento</th>
+                    <th>Permissão</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for usuario in usuarios %}
+                <tr>
+                    <td>{{ usuario.nome }}</td>
+                    <td>{{ usuario.registro }}</td>
+                    <td>{{ usuario.departamento }}</td>
+                    <td>{{ usuario.permissao }}</td>
+                    <td>
+                        {% if usuario.registro != session.user.registro %}
+                        <form action="{{ url_for('excluir_usuario') }}" method="post" onsubmit="return confirm('Tem certeza que deseja excluir o usuário {{ usuario.nome }}?');">
+                            <input type="hidden" name="registro_usuario" value="{{ usuario.registro }}">
+                            <button type="submit" class="btn-delete">Excluir</button>
+                        </form>
+                        {% else %}
+                            <span class="text-muted">Não é possível excluir</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p style="text-align: center;">Nenhum usuário cadastrado.</p>
+    {% endif %}
+
+    <style>
+        /* Estilos específicos para a página de gerenciar usuários */
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .btn-delete {
+            padding: 5px 10px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-delete:hover {
+            background-color: #c82333;
+        }
+        .text-muted {
+            color: #6c757d;
+        }
+    </style>
+{% endblock %}

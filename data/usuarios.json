@@ -1,0 +1,37 @@
+[
+    {
+        "registro": "admin",
+        "nome": "Administrador",
+        "departamento": "TI",
+        "permissao": "administrador",
+        "senha": "admin"
+    },
+    {
+        "registro": "7431",
+        "nome": "Lucas Prado",
+        "departamento": "Log\u00edstica",
+        "permissao": "administrador",
+        "senha": "scrypt:32768:8:1$zTGBxBUtWZ4tloI3$4d556d991a7b54466b1fe81de513f6c8006af6e36f846c68bbd7def99f0ca3209849cc85fb8a223cd4899c520953b102c71657c326aaa88d4de5fc2f49a7b48c"
+    },
+    {
+        "registro": "7585",
+        "nome": "Solicitante Teste Betim",
+        "departamento": "MAF Betim",
+        "permissao": "solicitante",
+        "senha": "scrypt:32768:8:1$XoSeCfaCbEFvUP1Y$5ea1ebe3606ac2a860db040c9321357582d798543c3be5670419d3662b86079115c127d17241e27f42a8093b9532efa476eaac46e8cde434a1fba1010138ff23"
+    },
+    {
+        "registro": "7586",
+        "nome": "Solicitante Teste PTR",
+        "departamento": "MAF Porto Real",
+        "permissao": "solicitante",
+        "senha": "scrypt:32768:8:1$i2vJ6sp9pYzbo1w5$15cc8e71f7de33142eab54224b410de86475b620c460088f8b428e671e9b56b8a68fcec3bcbabfcd33283d510fbce6e4726a7d6f65510148bbaf2ea557d9ec89"
+    },
+    {
+        "registro": "7432",
+        "nome": "Solicitante Teste ",
+        "departamento": "Log\u00edstica",
+        "permissao": "solicitante",
+        "senha": "scrypt:32768:8:1$79IMnI4pnsuYuqTY$9888fe9b70b9b00b6edfb6428e3c5ad67b6f84ecd53490977aeb3f4383e1a1587cd569a8c8de4e4b6af655d2394e14fe44dbb11ef81b97bbc20cc5cc9deddc29"
+    }
+]

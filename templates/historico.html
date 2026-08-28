@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}Histórico de Requisições - CoreStock{% endblock %}
+
+{% block content %}
+    <h1>Histórico de Requisições</h1>
+
+    {% if session.user.permissao == 'administrador' %}
+    <a href="{{ url_for('exportar_historico_excel') }}" class="btn btn-primary" style="margin-bottom: 20px;">Exportar para Excel</a>
+    {% endif %}
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Data da Requisição</th>
+                <th>Status</th>
+                <th>Tipo</th>
+                {% if session.user.permissao == 'administrador' %}
+                <th>Solicitante</th>
+                <th>Departamento</th>
+                {% endif %}
+                <th>Separado Por</th>
+                <th>Datas (Retirada / Conclusão)</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for requisicao in requisicoes %}
+            <tr>
+                <td>{{ requisicao.id }}</td>
+                <td>{{ requisicao.data }}</td>
+                <td>
+                    {% if requisicao.status == 'pendente' %}
+                        <span style="background-color: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 12px;">PENDENTE</span>
+                    {% elif requisicao.status == 'separado' %}
+                        <span style="background-color: #cce5ff; color: #004085; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 12px;">SEPARADO</span>
+                    {% else %}
+                        <span style="background-color: #d4edda; color: #155724; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 12px;">CONCLUÍDA</span>
+                    {% endif %}
+                </td>
+                
+                <!-- Coluna de Tipo (EPI ou Escritório) -->
+                <td>
+                    {% if requisicao.categoria == 'epi' %}
+                        <span style="background-color: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 12px; display: inline-block;">🛡️ EPI</span>
+                    {% else %}
+                        <span style="background-color: #cce5ff; color: #004085; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 12px; display: inline-block;">📄 Escritório</span>
+                    {% endif %}
+                </td>
+
+                {% if session.user.permissao == 'administrador' %}
+                <td>{{ requisicao.nome }}</td>
+                <td>{{ requisicao.departamento }}</td>
+                {% endif %}
+                
+                <!-- Coluna Separado Por -->
+                <td>
+                    {% if requisicao.separado_por %}
+                        {{ requisicao.separado_por }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if requisicao.status == 'separado' %}
+                        Retirada: {{ requisicao.data_retirada }}
+                    {% elif requisicao.status == 'concluida' %}
+                        Conclusão: {{ requisicao.data_conclusao }}
+                    {% else %}
+                        Aguardando Separação
+                    {% endif %}
+                </td>
+                
+                <td>
+                    <!-- Botão VISUALIZAR: Sempre visível para qualquer requisição -->
+                    <a href="{{ url_for('ver_requisicao', requisicao_id=requisicao.id) }}" class="btn btn-info btn-sm">Visualizar</a>
+                    
+                    <!-- Botão EXCLUIR: Visível apenas se a requisição estiver PENDENTE -->
+                    {% if requisicao.status == 'pendente' %}
+                    <form action="{{ url_for('excluir_requisicao', requisicao_id=requisicao.id) }}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir esta requisição?');">Excluir</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                {% set colspan_count = 9 if session.user.permissao == 'administrador' else 7 %}
+                <td colspan="{{ colspan_count }}" style="text-align: center;">Não há histórico de requisições.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <style>
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .table th, .table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+            vertical-align: middle;
+        }
+        .table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .table tbody tr:hover {
+            background-color: #e9e9e9;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-info {
+            background-color: #17a2b8;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .btn-sm {
+            font-size: 14px;
+        }
+    </style>
+{% endblock %}
