@@ -6,6 +6,8 @@ import io
 import json
 from datetime import datetime
 import os
+import csv
+import openpyxl
 
 app = Flask(__name__)
 app.secret_key = 'sua_chave_secreta_aqui'
@@ -412,6 +414,34 @@ def excluir_material():
     flash('Material excluído com sucesso!', 'success')
     return redirect(request.referrer or url_for('gerenciar_materiais_escritorio'))
 
+@app.route('/editar_material/<codigo_material>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def editar_material(codigo_material):
+    materiais = carregar_materiais()
+    material = next((m for m in materiais if m['codigo'] == codigo_material), None)
+
+    if not material:
+        flash('Material não encontrado.', 'danger')
+        return redirect(url_for('gerenciar_materiais_escritorio'))
+
+    if request.method == 'POST':
+        nova_descricao = request.form.get('descricao')
+        nova_quantidade_maxima = request.form.get('quantidade_maxima')
+
+        material['descricao'] = nova_descricao
+        material['quantidade_maxima'] = int(nova_quantidade_maxima)
+
+        salvar_materiais(materiais)
+        flash('Material atualizado com sucesso!', 'success')
+
+        # Redireciona de volta para a categoria correspondente
+        if material.get('categoria') == 'epi':
+            return redirect(url_for('gerenciar_materiais_epi'))
+        return redirect(url_for('gerenciar_materiais_escritorio'))
+
+    return render_template('editar_material.html', material=material)
+
 @app.route('/cadastro')
 @login_required
 @admin_required
@@ -605,5 +635,94 @@ def ver_requisicao(requisicao_id):
 
     return render_template('ver_requisicao.html', requisicao=requisicao)
 
+@app.route('/importar_materiais_csv', methods=['POST'])
+@login_required
+@admin_required
+def importar_materiais_csv():
+    categoria = request.form.get('categoria', 'escritorio')
+    file = request.files.get('arquivo_csv')
+
+    if not file or not file.filename:
+        flash('Nenhum arquivo foi selecionado.', 'danger')
+        return redirect(request.referrer or url_for('gerenciar_materiais_escritorio'))
+
+    filename = file.filename.lower()
+    materiais = carregar_materiais()
+    codigos_existentes = {m['codigo'] for m in materiais}
+    novos_cadastrados = 0
+
+    try:
+        # --- 1. SE FOR ARQUIVO EXCEL (.xlsx) ---
+        if filename.endswith('.xlsx'):
+            workbook = openpyxl.load_workbook(file)
+            sheet = workbook.active
+            rows = list(sheet.iter_rows(values_only=True))
+
+            if not rows:
+                flash('A planilha enviada está vazia.', 'warning')
+                return redirect(request.referrer or url_for('gerenciar_materiais_escritorio'))
+
+            # Pega os nomes das colunas da primeira linha
+            header = [str(cell).strip().lower() if cell is not None else '' for cell in rows[0]]
+
+            # Mapeia os índices das colunas 'codigo', 'descricao' e 'quantidade_maxima'
+            idx_codigo = header.index('codigo') if 'codigo' in header else 0
+            idx_desc = header.index('descricao') if 'descricao' in header else 1
+            idx_qtd = header.index('quantidade_maxima') if 'quantidade_maxima' in header else 2
+
+            for row in rows[1:]:
+                if not row or len(row) <= idx_codigo:
+                    continue
+                codigo = str(row[idx_codigo] or '').strip()
+                descricao = str(row[idx_desc] or '').strip() if len(row) > idx_desc else ''
+                qtd_max = str(row[idx_qtd] or '').strip() if len(row) > idx_qtd else ''
+
+                if codigo and descricao and qtd_max and codigo not in codigos_existentes:
+                    materiais.append({
+                        "codigo": codigo,
+                        "descricao": descricao,
+                        "quantidade_maxima": int(float(qtd_max)),
+                        "categoria": categoria
+                    })
+                    codigos_existentes.add(codigo)
+                    novos_cadastrados += 1
+
+        # --- 2. SE FOR ARQUIVO CSV (.csv) ---
+        elif filename.endswith('.csv'):
+            content = file.stream.read().decode("utf-8-sig", errors="ignore")
+            
+            # Detecta se o separador é vírgula ou ponto e vírgula
+            delimiter = ';' if ';' in content else ','
+            stream = io.StringIO(content)
+            reader = csv.DictReader(stream, delimiter=delimiter)
+
+            for row in reader:
+                # Normaliza as chaves do cabeçalho para minúsculas
+                row_clean = {str(k).strip().lower(): str(v).strip() for k, v in row.items() if k}
+                codigo = row_clean.get('codigo', '')
+                descricao = row_clean.get('descricao', '')
+                qtd_max = row_clean.get('quantidade_maxima', '')
+
+                if codigo and descricao and qtd_max and codigo not in codigos_existentes:
+                    materiais.append({
+                        "codigo": codigo,
+                        "descricao": descricao,
+                        "quantidade_maxima": int(float(qtd_max)),
+                        "categoria": categoria
+                    })
+                    codigos_existentes.add(codigo)
+                    novos_cadastrados += 1
+
+        else:
+            flash('Formato inválido. Por favor, envie um arquivo .csv ou .xlsx (Excel).', 'danger')
+            return redirect(request.referrer or url_for('gerenciar_materiais_escritorio'))
+
+        salvar_materiais(materiais)
+        flash(f'Sucesso! {novos_cadastrados} novos materiais foram importados.', 'success')
+
+    except Exception as e:
+        flash(f'Erro ao processar o arquivo: {str(e)}', 'danger')
+
+    return redirect(request.referrer or url_for('gerenciar_materiais_escritorio'))
 if __name__ == '__main__':
     app.run(debug=True)

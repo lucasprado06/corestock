@@ -25,5 +25,245 @@
         "descricao": "Protetor",
         "quantidade_maxima": 23,
         "categoria": "epi"
+    },
+    {
+        "codigo": "1001",
+        "descricao": "Caneta Esferografica Azul",
+        "quantidade_maxima": 10,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1002",
+        "descricao": "Caneta Esferografica Preta",
+        "quantidade_maxima": 10,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1003",
+        "descricao": "Lapis Preto HB n2",
+        "quantidade_maxima": 12,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1004",
+        "descricao": "Borracha Branca Escolar",
+        "quantidade_maxima": 5,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1005",
+        "descricao": "Apontador de Lapis com Deposito",
+        "quantidade_maxima": 5,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1006",
+        "descricao": "Bloco de Notas Autoadesivo 76x76mm",
+        "quantidade_maxima": 8,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1007",
+        "descricao": "Caderno Universitario 10 Materias",
+        "quantidade_maxima": 3,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1008",
+        "descricao": "Papel A4 Sulfite 75g Pacote 500fls",
+        "quantidade_maxima": 5,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1009",
+        "descricao": "Grampeador de Mesa Medio",
+        "quantidade_maxima": 2,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1010",
+        "descricao": "Caixa de Grampos 26/6 com 5000",
+        "quantidade_maxima": 3,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1011",
+        "descricao": "Tesoura Multiuso 17cm",
+        "quantidade_maxima": 3,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1012",
+        "descricao": "Regua Plastica Transparente 30cm",
+        "quantidade_maxima": 5,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1013",
+        "descricao": "Fita Adesiva Transparente 12x30m",
+        "quantidade_maxima": 6,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1014",
+        "descricao": "Corretivo em Fita 5mm x 6m",
+        "quantidade_maxima": 4,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1015",
+        "descricao": "Marcador de Texto Amarelo",
+        "quantidade_maxima": 10,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1016",
+        "descricao": "Marcador de Texto Verde",
+        "quantidade_maxima": 10,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1017",
+        "descricao": "Pasta Sanfonada A4 12 Divisoes",
+        "quantidade_maxima": 3,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1018",
+        "descricao": "Perfurador de Papel 2 Furos",
+        "quantidade_maxima": 2,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1019",
+        "descricao": "Clips para Papel n2/0 Caixinha",
+        "quantidade_maxima": 5,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1020",
+        "descricao": "Calculadora de Mesa 12 Digitos",
+        "quantidade_maxima": 2,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "2001",
+        "descricao": "Capacete de Seguranca Classe B Aba Frontal",
+        "quantidade_maxima": 5,
+        "categoria": "epi"
+    },
+    {
+        "codigo": "2002",
+        "descricao": "Oculos de Protecao Incolor Anti-Risco",
+        "quantidade_maxima": 10,
+        "categoria": "epi"
+    },
+    {
+        "codigo": "2003",
+        "descricao": "Oculos de Protecao Fume com Protecao UV",
+        "quantidade_maxima": 10,
+        "categoria": "epi"
+    },
+    {
+        "codigo": "2004",
+        "descricao": "Protetor Auricular de Plugue em Silicone",
+        "quantidade_maxima": 20,
+        "categoria": "epi"
+    },
+    {
+        "codigo": "2005",
+        "descricao": "Protetor Auricular Tipo Concha 20dB",
+        "quantidade_maxima": 5,
+        "categoria": "epi"
+    },
+    {
+        "codigo": "2006",
+        "descricao": "Luva de Protecao Multitato Nitrilica Tam M",
+        "quantidade_maxima": 15,
+        "categoria": "epi"
+    },
+    {
+        "codigo": "2007",
+        "descricao": "Luva de Protecao Multitato Nitrilica Tam G",
+        "quantidade_maxima": 15,
+        "categoria": "epi"
+    },
+    {
+        "codigo": "2008",
+        "descricao": "Luva de Vaqueta Couro Reforcada",
+        "quantidade_maxima": 8,
+        "categoria": "epi"
+    },
+    {
+        "codigo": "2009",
+        "descricao": "Luva Pigmentada Antiderrapante",
+        "quantidade_maxima": 12,
+        "categoria": "epi"
+    },
+    {
+        "codigo": "2010",
+        "descricao": "Bina / Botina de Seguranca com Bico de Aco N40",
+        "quantidade_maxima": 3,
+        "categoria": "epi"
+    },
+    {
+        "codigo": "2011",
+        "descricao": "Botina de Seguranca sem Aco N41",
+        "quantidade_maxima": 3,
+        "categoria": "epi"
+    },
+    {
+        "codigo": "2012",
+        "descricao": "Mascara de Protecao Respiratoria PFF2 / N95",
+        "quantidade_maxima": 25,
+        "categoria": "epi"
+    },
+    {
+        "codigo": "2013",
+        "descricao": "Mascara Respiratoria Semi-Facial com Filtro",
+        "quantidade_maxima": 4,
+        "categoria": "epi"
+    },
+    {
+        "codigo": "2014",
+        "descricao": "Avental de PVR Impermeavel 120x70cm",
+        "quantidade_maxima": 5,
+        "categoria": "epi"
+    },
+    {
+        "codigo": "2015",
+        "descricao": "Avental de Raspa de Couro para Soldador",
+        "quantidade_maxima": 3,
+        "categoria": "epi"
+    },
+    {
+        "codigo": "2016",
+        "descricao": "Cinto de Seguranca Paraquedista com Talabarte",
+        "quantidade_maxima": 2,
+        "categoria": "epi"
+    },
+    {
+        "codigo": "2017",
+        "descricao": "Colete Refletivo de Alta Visibilidade Tam G",
+        "quantidade_maxima": 8,
+        "categoria": "epi"
+    },
+    {
+        "codigo": "2018",
+        "descricao": "Protetor Facial de Acrilico Transparente 8 pol",
+        "quantidade_maxima": 4,
+        "categoria": "epi"
+    },
+    {
+        "codigo": "2019",
+        "descricao": "Manga de Protecao em Raspa para Braco",
+        "quantidade_maxima": 6,
+        "categoria": "epi"
+    },
+    {
+        "codigo": "2020",
+        "descricao": "Creme de Protecao para as Maos Grupo 3",
+        "quantidade_maxima": 10,
+        "categoria": "epi"
     }
 ]

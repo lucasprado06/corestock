@@ -15,6 +15,19 @@
         </a>
     </div>
 
+    <!-- Bloco de Importação em Massa (CSV e Excel) -->
+<div style="max-width: 500px; margin: 0 auto 30px auto; background-color: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #dee2e6;">
+    <h3 style="margin-top: 0; color: #856404; font-size: 1.1em; text-align: center;">📥 Importar EPIs em Massa (CSV ou Excel)</h3>
+    <form action="{{ url_for('importar_materiais_csv') }}" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 10px;">
+        <input type="hidden" name="categoria" value="epi">
+        <input type="file" name="arquivo_csv" accept=".csv, .xlsx, .xls" required style="padding: 5px; border: 1px solid #ccc; border-radius: 4px; background: #fff;">
+        <button type="submit" class="btn-submit" style="background-color: #6c757d;">Carregar Planilha (CSV / Excel)</button>
+    </form>
+    <small style="color: #6c757d; display: block; margin-top: 8px; text-align: center;">
+        Formato do cabeçalho da planilha: <code>codigo;descricao;quantidade_maxima</code>
+    </small>
+</div>
+
     <h2>Cadastrar Equipamento de Proteção (EPI)</h2>
     <form action="{{ url_for('gerenciar_materiais_epi') }}" method="post" style="max-width: 500px; margin: 0 auto; background: #fff3cd; padding: 20px; border-radius: 8px; border: 1px solid #ffeeba;">
         <div class="form-group">
@@ -50,10 +63,13 @@
                     <td>{{ material.descricao }}</td>
                     <td>{{ material.quantidade_maxima }}</td>
                     <td>
-                        <form action="{{ url_for('excluir_material') }}" method="post" onsubmit="return confirm('Tem certeza que deseja excluir o EPI {{ material.descricao }}?');">
-                            <input type="hidden" name="codigo_material" value="{{ material.codigo }}">
-                            <button type="submit" class="btn-delete">Excluir</button>
-                        </form>
+                        <div style="display: flex; gap: 5px; align-items: center;">
+                            <a href="{{ url_for('editar_material', codigo_material=material.codigo) }}" class="btn-edit">Editar</a>
+                            <form action="{{ url_for('excluir_material') }}" method="post" onsubmit="return confirm('Tem certeza que deseja excluir o EPI {{ material.descricao }}?');" style="margin: 0;">
+                                <input type="hidden" name="codigo_material" value="{{ material.codigo }}">
+                                <button type="submit" class="btn-delete">Excluir</button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -71,8 +87,11 @@
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
         .form-group input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        .btn-submit { padding: 10px 15px; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%; }
-        .btn-delete { padding: 5px 10px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-submit { padding: 10px 15px; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; }
+        .btn-edit { padding: 5px 10px; background-color: #ffc107; color: #212529; text-decoration: none; border-radius: 4px; font-size: 14px; display: inline-block; }
+        .btn-edit:hover { background-color: #e0a800; }
+        .btn-delete { padding: 5px 10px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .btn-delete:hover { background-color: #c82333; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
         tr:nth-child(even) { background-color: #fffdf5; }

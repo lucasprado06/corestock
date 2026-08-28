@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Material - CoreStock{% endblock %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 30px auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+    <h2>Editar Material</h2>
+    <form action="{{ url_for('editar_material', codigo_material=material.codigo) }}" method="POST">
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label>Código (não alterável):</label>
+            <input type="text" value="{{ material.codigo }}" class="form-control" disabled style="width: 100%; padding: 8px;">
+        </div>
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label for="descricao">Descrição do Material:</label>
+            <input type="text" id="descricao" name="descricao" value="{{ material.descricao }}" required style="width: 100%; padding: 8px;">
+        </div>
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label for="quantidade_maxima">Quantidade Máxima por Requisição:</label>
+            <input type="number" id="quantidade_maxima" name="quantidade_maxima" value="{{ material.quantidade_maxima }}" required style="width: 100%; padding: 8px;">
+        </div>
+        <button type="submit" style="background-color: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer;">Salvar Alterações</button>
+        <a href="{{ request.referrer or url_for('gerenciar_materiais_escritorio') }}" style="margin-left: 10px;">Cancelar</a>
+    </form>
+</div>
+{% endblock %}
