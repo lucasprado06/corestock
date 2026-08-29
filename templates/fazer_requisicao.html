@@ -3,89 +3,207 @@
 {% block title %}Nova Solicitação - CoreStock{% endblock %}
 
 {% block content %}
-    <h1>Nova Solicitação</h1>
+    <h1 class="page-title">Nova Solicitação</h1>
 
     <!-- Exibe as abas somente se o usuário tiver acesso aos EPIs -->
     {% if pode_acessar_epi %}
     <div class="category-tabs">
         <a href="{{ url_for('fazer_requisicao', categoria='escritorio') }}" 
-           class="tab-btn {% if categoria_atual == 'escritorio' %}active{% endif %}">
+           class="tab-btn tab-escritorio {% if categoria_atual == 'escritorio' %}active{% endif %}">
             📄 Material de Escritório
         </a>
         <a href="{{ url_for('fazer_requisicao', categoria='epi') }}" 
-           class="tab-btn {% if categoria_atual == 'epi' %}active{% endif %}">
+           class="tab-btn tab-epi {% if categoria_atual == 'epi' %}active{% endif %}">
             🛡️ Equipamento de Proteção (EPI)
         </a>
     </div>
     {% endif %}
 
-    <form action="{{ url_for('enviar_requisicao') }}" method="post" style="max-width: 600px; margin: 0 auto; background: #f9f9f9; padding: 20px; border-radius: 8px;">
+    <form action="{{ url_for('enviar_requisicao') }}" method="post" 
+          class="form-container {% if categoria_atual == 'epi' %}form-epi{% else %}form-escritorio{% endif %}">
+        
         <input type="hidden" name="categoria_solicitacao" value="{{ categoria_atual }}">
+        
         <!-- Título informando a categoria selecionada -->
-        <h3>
+        <h3 class="form-title {% if categoria_atual == 'epi' %}title-epi{% else %}title-escritorio{% endif %}">
             {% if categoria_atual == 'epi' %}
-                Itens de Proteção Individual (EPI)
+                🛡️ Solicitação de Equipamentos de Proteção (EPI)
             {% else %}
-                Itens de Escritório
+                📄 Solicitação de Materiais de Escritório
             {% endif %}
         </h3>
 
         <!-- Lista de Itens -->
         <div id="itens-container">
             <!-- Primeiro item (obrigatório) -->
-            <div class="item-linha" id="item-0" style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
-                <select name="materiais[0][codigo]" required style="flex: 2; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+            <div class="item-linha" id="item-0">
+                <select name="materiais[0][codigo]" required class="input-select">
                     <option value="" disabled selected>Selecione o material</option>
                     {% for m in materiais %}
                         <option value="{{ m.codigo }}">{{ m.descricao }} (Máx: {{ m.quantidade_maxima }})</option>
                     {% endfor %}
                 </select>
 
-                <input type="number" name="materiais[0][quantidade]" placeholder="Qtd" min="1" required style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                <input type="number" name="materiais[0][quantidade]" placeholder="Qtd" min="1" required class="input-qtd">
                 
-                <div style="width: 35px;"></div>
+                <div class="spacer-btn"></div>
             </div>
         </div>
 
-        <button type="button" class="btn-secondary" onclick="adicionarItem()" style="margin-bottom: 20px; background-color: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
+        <button type="button" class="btn-secondary" onclick="adicionarItem()">
             + Adicionar Mais um Item
         </button>
 
         <br>
 
-        <button type="submit" class="btn-submit" style="width: 100%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer;">
+        <button type="submit" class="btn-submit {% if categoria_atual == 'epi' %}btn-epi{% else %}btn-escritorio{% endif %}">
             Enviar Requisição
         </button>
     </form>
 
     <style>
+        .page-title {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+        }
+
         .category-tabs {
             display: flex;
             justify-content: center;
             gap: 15px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         .tab-btn {
-            padding: 10px 20px;
+            padding: 12px 24px;
             border-radius: 25px;
             background-color: #e9ecef;
             color: #495057;
             text-decoration: none;
             font-weight: bold;
-            font-size: 14px;
-            transition: all 0.2s ease;
-            border: 2px solid transparent;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            border: none;
         }
 
         .tab-btn:hover {
             background-color: #dee2e6;
         }
 
-        .tab-btn.active {
-            background-color: #0d6efd;
+        /* Aba Escritório Ativa */
+        .tab-escritorio.active {
+            background-color: #007bff;
             color: white;
-            box-shadow: 0 4px 10px rgba(13, 110, 253, 0.25);
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+        }
+
+        /* Aba EPI Ativa */
+        .tab-epi.active {
+            background-color: #856404;
+            color: white;
+            box-shadow: 0 4px 10px rgba(133, 100, 4, 0.3);
+        }
+
+        /* Contêiner do Formulário */
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        .form-escritorio {
+            background-color: #f8f9fa;
+            border-top: 4px solid #007bff;
+        }
+
+        .form-epi {
+            background-color: #fffdf5;
+            border-top: 4px solid #856404;
+        }
+
+        .form-title {
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .title-escritorio {
+            color: #007bff;
+        }
+
+        .title-epi {
+            color: #856404;
+        }
+
+        .item-linha {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+
+        .input-select {
+            flex: 2;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: #fff;
+        }
+
+        .input-qtd {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: #fff;
+        }
+
+        .spacer-btn {
+            width: 38px;
+        }
+
+        .btn-secondary {
+            margin-bottom: 20px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 9px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-escritorio {
+            background-color: #007bff;
+        }
+
+        .btn-epi {
+            background-color: #856404;
+        }
+
+        .btn-remove {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
         }
     </style>
 
@@ -98,22 +216,18 @@
             const novaLinha = document.createElement('div');
             novaLinha.className = 'item-linha';
             novaLinha.id = `item-${itemIndex}`;
-            novaLinha.style.display = 'flex';
-            novaLinha.style.gap = '10px';
-            novaLinha.style.marginBottom = '10px';
-            novaLinha.style.alignItems = 'center';
 
             novaLinha.innerHTML = `
-                <select name="materiais[${itemIndex}][codigo]" required style="flex: 2; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                <select name="materiais[${itemIndex}][codigo]" required class="input-select">
                     <option value="" disabled selected>Selecione o material</option>
                     {% for m in materiais %}
                         <option value="{{ m.codigo }}">{{ m.descricao }} (Máx: {{ m.quantidade_maxima }})</option>
                     {% endfor %}
                 </select>
 
-                <input type="number" name="materiais[${itemIndex}][quantidade]" placeholder="Qtd" min="1" required style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                <input type="number" name="materiais[${itemIndex}][quantidade]" placeholder="Qtd" min="1" required class="input-qtd">
 
-                <button type="button" onclick="removerItem('item-${itemIndex}')" style="background-color: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                <button type="button" onclick="removerItem('item-${itemIndex}')" class="btn-remove">
                     ✕
                 </button>
             `;

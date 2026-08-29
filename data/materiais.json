@@ -1,20 +1,5 @@
 [
     {
-        "codigo": "30100001",
-        "descricao": "APAGADOR QUADRO BRANCO RADEX",
-        "quantidade_maxima": 2
-    },
-    {
-        "codigo": "30100002",
-        "descricao": "APOIO PARA PES ACRINIL",
-        "quantidade_maxima": 3
-    },
-    {
-        "codigo": "30100003",
-        "descricao": "APONTADOR PLASTICO SIMPLES RADEX",
-        "quantidade_maxima": 10
-    },
-    {
         "codigo": "52165165",
         "descricao": "Luva",
         "quantidade_maxima": 12,
@@ -25,126 +10,6 @@
         "descricao": "Protetor",
         "quantidade_maxima": 23,
         "categoria": "epi"
-    },
-    {
-        "codigo": "1001",
-        "descricao": "Caneta Esferografica Azul",
-        "quantidade_maxima": 10,
-        "categoria": "escritorio"
-    },
-    {
-        "codigo": "1002",
-        "descricao": "Caneta Esferografica Preta",
-        "quantidade_maxima": 10,
-        "categoria": "escritorio"
-    },
-    {
-        "codigo": "1003",
-        "descricao": "Lapis Preto HB n2",
-        "quantidade_maxima": 12,
-        "categoria": "escritorio"
-    },
-    {
-        "codigo": "1004",
-        "descricao": "Borracha Branca Escolar",
-        "quantidade_maxima": 5,
-        "categoria": "escritorio"
-    },
-    {
-        "codigo": "1005",
-        "descricao": "Apontador de Lapis com Deposito",
-        "quantidade_maxima": 5,
-        "categoria": "escritorio"
-    },
-    {
-        "codigo": "1006",
-        "descricao": "Bloco de Notas Autoadesivo 76x76mm",
-        "quantidade_maxima": 8,
-        "categoria": "escritorio"
-    },
-    {
-        "codigo": "1007",
-        "descricao": "Caderno Universitario 10 Materias",
-        "quantidade_maxima": 3,
-        "categoria": "escritorio"
-    },
-    {
-        "codigo": "1008",
-        "descricao": "Papel A4 Sulfite 75g Pacote 500fls",
-        "quantidade_maxima": 5,
-        "categoria": "escritorio"
-    },
-    {
-        "codigo": "1009",
-        "descricao": "Grampeador de Mesa Medio",
-        "quantidade_maxima": 2,
-        "categoria": "escritorio"
-    },
-    {
-        "codigo": "1010",
-        "descricao": "Caixa de Grampos 26/6 com 5000",
-        "quantidade_maxima": 3,
-        "categoria": "escritorio"
-    },
-    {
-        "codigo": "1011",
-        "descricao": "Tesoura Multiuso 17cm",
-        "quantidade_maxima": 3,
-        "categoria": "escritorio"
-    },
-    {
-        "codigo": "1012",
-        "descricao": "Regua Plastica Transparente 30cm",
-        "quantidade_maxima": 5,
-        "categoria": "escritorio"
-    },
-    {
-        "codigo": "1013",
-        "descricao": "Fita Adesiva Transparente 12x30m",
-        "quantidade_maxima": 6,
-        "categoria": "escritorio"
-    },
-    {
-        "codigo": "1014",
-        "descricao": "Corretivo em Fita 5mm x 6m",
-        "quantidade_maxima": 4,
-        "categoria": "escritorio"
-    },
-    {
-        "codigo": "1015",
-        "descricao": "Marcador de Texto Amarelo",
-        "quantidade_maxima": 10,
-        "categoria": "escritorio"
-    },
-    {
-        "codigo": "1016",
-        "descricao": "Marcador de Texto Verde",
-        "quantidade_maxima": 10,
-        "categoria": "escritorio"
-    },
-    {
-        "codigo": "1017",
-        "descricao": "Pasta Sanfonada A4 12 Divisoes",
-        "quantidade_maxima": 3,
-        "categoria": "escritorio"
-    },
-    {
-        "codigo": "1018",
-        "descricao": "Perfurador de Papel 2 Furos",
-        "quantidade_maxima": 2,
-        "categoria": "escritorio"
-    },
-    {
-        "codigo": "1019",
-        "descricao": "Clips para Papel n2/0 Caixinha",
-        "quantidade_maxima": 5,
-        "categoria": "escritorio"
-    },
-    {
-        "codigo": "1020",
-        "descricao": "Calculadora de Mesa 12 Digitos",
-        "quantidade_maxima": 2,
-        "categoria": "escritorio"
     },
     {
         "codigo": "2001",
@@ -255,15 +120,21 @@
         "categoria": "epi"
     },
     {
-        "codigo": "2019",
-        "descricao": "Manga de Protecao em Raspa para Braco",
-        "quantidade_maxima": 6,
-        "categoria": "epi"
-    },
-    {
         "codigo": "2020",
         "descricao": "Creme de Protecao para as Maos Grupo 3",
         "quantidade_maxima": 10,
         "categoria": "epi"
+    },
+    {
+        "codigo": "25154",
+        "descricao": "caneta",
+        "quantidade_maxima": 20,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "2019",
+        "descricao": "Manga de Protecao em Raspa para Braco",
+        "quantidade_maxima": 6,
+        "categoria": "escritorio"
     }
 ]

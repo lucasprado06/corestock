@@ -4,14 +4,61 @@
 
 {% block content %}
     <h1>Gerenciar Usuários</h1>
+
+    <!-- Cadastrar Novo Usuário -->
+    <h2>Cadastrar Novo Usuário</h2>
+    <form action="{{ url_for('gerenciar_usuarios') }}" method="post" class="user-form">
+        <div class="form-group">
+            <label for="registro">Registro / Usuário:</label>
+            <input type="text" id="registro" name="registro" placeholder="Ex: 102030" required>
+        </div>
+
+        <div class="form-group">
+            <label for="nome">Nome Completo:</label>
+            <input type="text" id="nome" name="nome" placeholder="Ex: João da Silva" required>
+        </div>
+
+        <div class="form-group">
+            <label for="centro_custo">Centro de Custo:</label>
+            <input type="text" id="centro_custo" name="centro_custo" placeholder="Ex: CC-1020" required>
+        </div>
+
+        <div class="form-group">
+    <label for="departamento">Departamento:</label>
+    <select id="departamento" name="departamento" required>
+        {% if departamentos %}
+            {% for dep in departamentos %}
+                <option value="{{ dep.nome or dep }}">{{ dep.nome or dep }}</option>
+            {% endfor %}
+        {% else %}
+            <option value="Geral">Geral</option>
+        {% endif %}
+    </select>
+</div>
+
+        <div class="form-group">
+            <label for="permissao">Perfil de Acesso:</label>
+            <select id="permissao" name="permissao" required>
+                <option value="solicitante">Solicitante (Fazer Requisições)</option>
+                <option value="abastecedor">Abastecedor (Atendimento / Separação)</option>
+                <option value="admin">Administrador (Acesso Total)</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn-submit">Cadastrar Usuário</button>
+    </form>
+
+    <!-- Tabela de Usuários Cadastrados -->
+    <h2>Usuários Cadastrados</h2>
     {% if usuarios %}
         <table>
             <thead>
                 <tr>
                     <th>Nome</th>
-                    <th>Registro</th>
+                    <th>Registro / Usuário</th>
+                    <th>Centro de Custo</th>
                     <th>Departamento</th>
-                    <th>Permissão</th>
+                    <th>Perfil</th>
                     <th>Ações</th>
                 </tr>
             </thead>
@@ -20,17 +67,34 @@
                 <tr>
                     <td>{{ usuario.nome }}</td>
                     <td>{{ usuario.registro }}</td>
+                    <td>{{ usuario.centro_custo or 'N/A' }}</td>
                     <td>{{ usuario.departamento }}</td>
-                    <td>{{ usuario.permissao }}</td>
                     <td>
-                        {% if usuario.registro != session.user.registro %}
-                        <form action="{{ url_for('excluir_usuario') }}" method="post" onsubmit="return confirm('Tem certeza que deseja excluir o usuário {{ usuario.nome }}?');">
-                            <input type="hidden" name="registro_usuario" value="{{ usuario.registro }}">
-                            <button type="submit" class="btn-delete">Excluir</button>
-                        </form>
+                        {% if usuario.permissao == 'admin' %}
+                            <span class="badge bg-danger">ADMINISTRADOR</span>
+                        {% elif usuario.permissao == 'abastecedor' %}
+                            <span class="badge bg-warning">ABASTECEDOR</span>
                         {% else %}
-                            <span class="text-muted">Não é possível excluir</span>
+                            <span class="badge bg-info">SOLICITANTE</span>
                         {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <!-- Botão Resetar Senha -->
+                            <form action="{{ url_for('resetar_senha', registro=usuario.registro) }}" method="post" onsubmit="return confirm('Resetar a senha do usuário {{ usuario.nome }} para Mudar123@?');" style="margin: 0;">
+                                <button type="submit" class="btn-reset">🔑 Resetar Senha</button>
+                            </form>
+
+                            <!-- Botão Excluir Usuário -->
+                            {% if usuario.registro != session.user.registro %}
+                                <form action="{{ url_for('excluir_usuario') }}" method="post" onsubmit="return confirm('Tem certeza que deseja excluir o usuário {{ usuario.nome }}?');" style="margin: 0;">
+                                    <input type="hidden" name="registro_usuario" value="{{ usuario.registro }}">
+                                    <button type="submit" class="btn-delete">Excluir</button>
+                                </form>
+                            {% else %}
+                                <span class="text-muted" style="font-size: 12px;">(Você)</span>
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -41,28 +105,91 @@
     {% endif %}
 
     <style>
-        /* Estilos específicos para a página de gerenciar usuários */
-        h1 {
+        h1, h2 {
             text-align: center;
             color: #333;
+            margin-top: 25px;
         }
+
+        .user-form {
+            max-width: 500px;
+            margin: 0 auto 30px auto;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .btn-submit {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+        }
+
+        .btn-submit:hover {
+            background-color: #0056b3;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
+
         th, td {
             border: 1px solid #ddd;
             padding: 12px;
             text-align: left;
         }
+
         th {
             background-color: #007bff;
             color: white;
         }
+
         tr:nth-child(even) {
             background-color: #f2f2f2;
         }
+
+        .btn-reset {
+            padding: 5px 10px;
+            background-color: #ffc107;
+            color: #212529;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .btn-reset:hover {
+            background-color: #e0a800;
+        }
+
         .btn-delete {
             padding: 5px 10px;
             background-color: #dc3545;
@@ -70,10 +197,25 @@
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            font-size: 13px;
         }
+
         .btn-delete:hover {
             background-color: #c82333;
         }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .bg-danger { background-color: #dc3545; }
+        .bg-warning { background-color: #fd7e14; }
+        .bg-info { background-color: #0d6efd; }
+
         .text-muted {
             color: #6c757d;
         }

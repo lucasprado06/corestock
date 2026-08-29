@@ -1,37 +1,35 @@
 [
     {
-        "registro": "admin",
-        "nome": "Administrador",
-        "departamento": "TI",
-        "permissao": "administrador",
-        "senha": "admin"
+        "registro": "1234",
+        "username": "1234",
+        "nome": "Teste abastecedor",
+        "centro_custo": "BR20_53030",
+        "departamento": "Recursos Humanos",
+        "permissao": "abastecedor",
+        "perfil": "abastecedor",
+        "senha": "scrypt:32768:8:1$gbu7lJt7vhSaFeSM$7b0246c58a9452be66ca2495b4dd56d1dabb53995bb0618b9752889582bd3939979145aa9ed6d3ed8ca0c1e8bdef6cdf7455e79424019663f0c95ea8b2547542",
+        "primeiro_acesso": false
     },
     {
-        "registro": "7431",
-        "nome": "Lucas Prado",
+        "registro": "1111",
+        "username": "1111",
+        "nome": "teste admin",
+        "centro_custo": "BR20_53040",
         "departamento": "Log\u00edstica",
-        "permissao": "administrador",
-        "senha": "scrypt:32768:8:1$zTGBxBUtWZ4tloI3$4d556d991a7b54466b1fe81de513f6c8006af6e36f846c68bbd7def99f0ca3209849cc85fb8a223cd4899c520953b102c71657c326aaa88d4de5fc2f49a7b48c"
+        "permissao": "admin",
+        "perfil": "admin",
+        "senha": "scrypt:32768:8:1$0Z0ENIDO7pFTXgjT$2aa863864144958a5448a3cc7c295cdf10c318f5cd644370eac6a307d39c9c945c3fd22260dc95faaed3c147f082ddea08642e53f509a9605cf0922b439e4de0",
+        "primeiro_acesso": false
     },
     {
-        "registro": "7585",
-        "nome": "Solicitante Teste Betim",
-        "departamento": "MAF Betim",
+        "registro": "2222",
+        "username": "2222",
+        "nome": "teste solicitante",
+        "centro_custo": "BR20_53050",
+        "departamento": "Produ\u00e7\u00e3o",
         "permissao": "solicitante",
-        "senha": "scrypt:32768:8:1$XoSeCfaCbEFvUP1Y$5ea1ebe3606ac2a860db040c9321357582d798543c3be5670419d3662b86079115c127d17241e27f42a8093b9532efa476eaac46e8cde434a1fba1010138ff23"
-    },
-    {
-        "registro": "7586",
-        "nome": "Solicitante Teste PTR",
-        "departamento": "MAF Porto Real",
-        "permissao": "solicitante",
-        "senha": "scrypt:32768:8:1$i2vJ6sp9pYzbo1w5$15cc8e71f7de33142eab54224b410de86475b620c460088f8b428e671e9b56b8a68fcec3bcbabfcd33283d510fbce6e4726a7d6f65510148bbaf2ea557d9ec89"
-    },
-    {
-        "registro": "7432",
-        "nome": "Solicitante Teste ",
-        "departamento": "Log\u00edstica",
-        "permissao": "solicitante",
-        "senha": "scrypt:32768:8:1$79IMnI4pnsuYuqTY$9888fe9b70b9b00b6edfb6428e3c5ad67b6f84ecd53490977aeb3f4383e1a1587cd569a8c8de4e4b6af655d2394e14fe44dbb11ef81b97bbc20cc5cc9deddc29"
+        "perfil": "solicitante",
+        "senha": "scrypt:32768:8:1$dSyDkyV7VgD47mAD$a7e0748f431e2d4a4438c851f525d6725eb68729ec01381b52ba984f8cda5e3610789c2e80a598ca532a983f050567cce9af55d471ae74dcffa4f44ec35f6552",
+        "primeiro_acesso": false
     }
 ]

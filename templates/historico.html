@@ -5,10 +5,32 @@
 {% block content %}
     <h1>Histórico de Requisições</h1>
 
-    {% if session.user.permissao == 'administrador' %}
-    <a href="{{ url_for('exportar_historico_excel') }}" class="btn btn-primary" style="margin-bottom: 20px;">Exportar para Excel</a>
+    <!-- Bloco de Filtro e Exportação para Excel (Visível para Admin e Abastecedor) -->
+    {% if session.user.permissao in ['administrador', 'admin', 'abastecedor'] %}
+    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #dee2e6; margin-bottom: 25px;">
+        <h3 style="margin-top: 0; color: #198754; font-size: 1.1em;">📊 Exportar Relatório para Excel</h3>
+        <form method="GET" action="{{ url_for('exportar_relatorio_excel') }}" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+            <div>
+                <label style="display: block; font-weight: bold; font-size: 14px; margin-bottom: 5px;">Data Início:</label>
+                <input type="date" name="data_inicio" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+            </div>
+            <div>
+                <label style="display: block; font-weight: bold; font-size: 14px; margin-bottom: 5px;">Data Término:</label>
+                <input type="date" name="data_fim" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+            </div>
+            <div>
+                <button type="submit" class="btn-excel">
+                    📥 Download Planilha Filtrada
+                </button>
+            </div>
+        </form>
+        <small style="color: #6c757d; display: block; margin-top: 8px;">
+            Se nenhuma data for selecionada, todas as requisições cadastradas serão exportadas.
+        </small>
+    </div>
     {% endif %}
 
+    <!-- Tabela do Histórico -->
     <table class="table">
         <thead>
             <tr>
@@ -16,7 +38,7 @@
                 <th>Data da Requisição</th>
                 <th>Status</th>
                 <th>Tipo</th>
-                {% if session.user.permissao == 'administrador' %}
+                {% if session.user.permissao in ['administrador', 'admin', 'abastecedor'] %}
                 <th>Solicitante</th>
                 <th>Departamento</th>
                 {% endif %}
@@ -28,28 +50,28 @@
         <tbody>
             {% for requisicao in requisicoes %}
             <tr>
-                <td>{{ requisicao.id }}</td>
+                <td><strong>#{{ requisicao.id }}</strong></td>
                 <td>{{ requisicao.data }}</td>
                 <td>
                     {% if requisicao.status == 'pendente' %}
-                        <span style="background-color: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 12px;">PENDENTE</span>
+                        <span class="badge badge-warning">PENDENTE</span>
                     {% elif requisicao.status == 'separado' %}
-                        <span style="background-color: #cce5ff; color: #004085; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 12px;">SEPARADO</span>
+                        <span class="badge badge-primary">SEPARADO</span>
                     {% else %}
-                        <span style="background-color: #d4edda; color: #155724; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 12px;">CONCLUÍDA</span>
+                        <span class="badge badge-success">CONCLUÍDA</span>
                     {% endif %}
                 </td>
                 
                 <!-- Coluna de Tipo (EPI ou Escritório) -->
                 <td>
                     {% if requisicao.categoria == 'epi' %}
-                        <span style="background-color: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 12px; display: inline-block;">🛡️ EPI</span>
+                        <span class="badge badge-warning" style="background-color: #fff3cd; color: #856404;">🛡️ EPI</span>
                     {% else %}
-                        <span style="background-color: #cce5ff; color: #004085; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 12px; display: inline-block;">📄 Escritório</span>
+                        <span class="badge badge-primary" style="background-color: #cce5ff; color: #004085;">📄 Escritório</span>
                     {% endif %}
                 </td>
 
-                {% if session.user.permissao == 'administrador' %}
+                {% if session.user.permissao in ['administrador', 'admin', 'abastecedor'] %}
                 <td>{{ requisicao.nome }}</td>
                 <td>{{ requisicao.departamento }}</td>
                 {% endif %}
@@ -65,57 +87,119 @@
 
                 <td>
                     {% if requisicao.status == 'separado' %}
-                        Retirada: {{ requisicao.data_retirada }}
+                        Retirada: {{ requisicao.data_retirada or '-' }}
                     {% elif requisicao.status == 'concluida' %}
-                        Conclusão: {{ requisicao.data_conclusao }}
+                        Conclusão: {{ requisicao.data_conclusao or '-' }}
                     {% else %}
                         Aguardando Separação
                     {% endif %}
                 </td>
                 
                 <td>
-                    <!-- Botão VISUALIZAR: Sempre visível para qualquer requisição -->
-                    <a href="{{ url_for('ver_requisicao', requisicao_id=requisicao.id) }}" class="btn btn-info btn-sm">Visualizar</a>
-                    
-                    <!-- Botão EXCLUIR: Visível apenas se a requisição estiver PENDENTE -->
-                    {% if requisicao.status == 'pendente' %}
-                    <form action="{{ url_for('excluir_requisicao', requisicao_id=requisicao.id) }}" method="post" style="display:inline;">
-                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir esta requisição?');">Excluir</button>
-                    </form>
-                    {% endif %}
+                    <div style="display: flex; gap: 5px; align-items: center;">
+                        <!-- Botão VISUALIZAR: Sempre visível -->
+                        <a href="{{ url_for('ver_requisicao', requisicao_id=requisicao.id) }}" class="btn btn-info btn-sm">Visualizar</a>
+                        
+                        <!-- LÓGICA DE EXIBIÇÃO DO BOTÃO EXCLUIR -->
+                        {% set permissao = session.user.permissao %}
+                        {% set registro_logado = session.user.registro | string %}
+                        {% set registro_req = requisicao.registro | string %}
+
+                        {% if permissao in ['administrador', 'admin'] %}
+                            <!-- ADMINISTRADOR: Pode excluir qualquer requisição em qualquer status -->
+                            <form action="{{ url_for('excluir_requisicao', requisicao_id=requisicao.id) }}" method="post" style="margin: 0;">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir a requisição #{{ requisicao.id }}?');">Excluir</button>
+                            </form>
+                        {% elif permissao == 'solicitante' and registro_req == registro_logado and requisicao.status == 'pendente' %}
+                            <!-- SOLICITANTE: Pode excluir apenas a própria requisição e se estiver PENDENTE -->
+                            <form action="{{ url_for('excluir_requisicao', requisicao_id=requisicao.id) }}" method="post" style="margin: 0;">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja cancelar esta requisição?');">Excluir</button>
+                            </form>
+                        {% endif %}
+                    </div>
                 </td>
             </tr>
             {% else %}
             <tr>
-                {% set colspan_count = 9 if session.user.permissao == 'administrador' else 7 %}
+                {% set colspan_count = 9 if session.user.permissao in ['administrador', 'admin', 'abastecedor'] else 7 %}
                 <td colspan="{{ colspan_count }}" style="text-align: center;">Não há histórico de requisições.</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-    
+
     <style>
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+        }
+
+        .btn-excel {
+            padding: 9px 18px;
+            background-color: #198754;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-excel:hover {
+            background-color: #146c43;
+        }
+
         .table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 10px;
         }
+
         .table th, .table td {
             border: 1px solid #ddd;
             padding: 12px;
             text-align: left;
             vertical-align: middle;
         }
+
         .table th {
-            background-color: #f2f2f2;
+            background-color: #007bff;
+            color: white;
             font-weight: bold;
         }
+
         .table tbody tr:nth-child(even) {
             background-color: #f9f9f9;
         }
+
         .table tbody tr:hover {
-            background-color: #e9e9e9;
+            background-color: #f1f1f1;
         }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 12px;
+            display: inline-block;
+        }
+
+        .badge-warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-primary {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+
+        .badge-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
         .btn-danger {
             background-color: #dc3545;
             color: white;
@@ -125,16 +209,11 @@
             cursor: pointer;
             text-decoration: none;
         }
-        .btn-primary {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
+
+        .btn-danger:hover {
+            background-color: #bb2d3b;
         }
+
         .btn-info {
             background-color: #17a2b8;
             color: white;
@@ -144,10 +223,14 @@
             cursor: pointer;
             text-decoration: none;
             display: inline-block;
-            margin-right: 5px;
         }
+
+        .btn-info:hover {
+            background-color: #138496;
+        }
+
         .btn-sm {
-            font-size: 14px;
+            font-size: 13px;
         }
     </style>
 {% endblock %}

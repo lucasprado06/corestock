@@ -3,7 +3,7 @@
 {% block title %}Trocar Senha{% endblock %}
 
 {% block content %}
-    <h1>Trocar Senha</h1>
+    <h1 style="text-align: center; color: #333;">Trocar Senha</h1>
     <div class="form-container">
         <form action="{{ url_for('trocar_senha') }}" method="post">
             <div class="form-group">
@@ -15,8 +15,8 @@
                 <input type="password" id="nova_senha" name="nova_senha" required>
             </div>
             <div class="form-group">
-                <label for="confirmar_nova_senha">Confirmar Nova Senha:</label>
-                <input type="password" id="confirmar_nova_senha" name="confirmar_nova_senha" required>
+                <label for="confirmacao_senha">Confirmar Nova Senha:</label>
+                <input type="password" id="confirmacao_senha" name="confirmacao_senha" required>
             </div>
             <button type="submit" class="btn">Trocar Senha</button>
         </form>
@@ -26,10 +26,11 @@
         .form-container {
             max-width: 400px;
             margin: 20px auto;
-            padding: 20px;
+            padding: 25px;
             background-color: #f9f9f9;
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
         }
         .form-group {
             margin-bottom: 15px;
@@ -38,12 +39,14 @@
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
+            color: #495057;
         }
         .form-group input {
             width: 100%;
             padding: 8px;
             border: 1px solid #ccc;
             border-radius: 4px;
+            box-sizing: border-box;
         }
         .btn {
             width: 100%;
@@ -53,7 +56,9 @@
             background-color: #007bff;
             color: white;
             font-size: 16px;
+            font-weight: bold;
             cursor: pointer;
+            transition: background-color 0.2s;
         }
         .btn:hover {
             background-color: #0056b3;

@@ -12,7 +12,7 @@
             background-color: #f4f4f9;
         }
         .container {
-            max-width: 1100px;
+            max-width: 1150px;
             margin: 20px auto;
             padding: 20px;
             background-color: #fff;
@@ -42,28 +42,45 @@
             text-decoration: none;
             font-weight: bold;
         }
+
+        /* Menu de Navegação */
         .nav-bar {
             display: flex;
             justify-content: flex-start;
-            gap: 20px;
+            gap: 10px;
             background-color: #e9ecef;
-            padding: 15px 30px;
+            padding: 12px 18px;
             border-radius: 8px;
             margin-bottom: 30px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+            flex-wrap: wrap;
+            align-items: center;
         }
-        .nav-bar a {
+
+        .nav-link {
             color: #007bff;
             text-decoration: none;
             font-weight: bold;
-            padding: 5px 10px;
-            border-radius: 5px;
-            transition: background-color 0.3s;
+            font-size: 14px;
+            padding: 8px 14px;
+            border-radius: 6px;
+            transition: all 0.2s ease-in-out;
+            display: inline-block;
         }
-        .nav-bar a:hover {
+
+        .nav-link:hover {
             background-color: #d1e2ff;
+            color: #0056b3;
             text-decoration: none;
         }
+
+        /* Destaque para a página atual/ativa */
+        .nav-link.active {
+            background-color: #007bff;
+            color: #ffffff !important;
+            box-shadow: 0 3px 8px rgba(0, 123, 255, 0.35);
+        }
+
         .alert {
             padding: 15px;
             margin-bottom: 20px;
@@ -93,26 +110,83 @@
             <span class="logo">CoreStock</span>
             {% if 'user' in session %}
             <div class="user-info">
-                <p>Olá, {{ session.user.nome }}!</p>
+                <p style="margin: 0;">Olá, <strong>{{ session.user.nome }}</strong>!</p>
                 <a href="{{ url_for('logout') }}">Sair</a>
             </div>
             {% endif %}
         </div>
+
         <div class="nav-bar">
             {% if 'user' in session %}
-                {% if session.user.permissao == 'administrador' %}
-                    <a href="{{ url_for('pendentes') }}">Requisições Pendentes</a>
-                    <a href="{{ url_for('separados') }}">Requisições Separadas</a>
-                    <a href="{{ url_for('historico') }}">Histórico de Requisições</a>
-                    <a href="{{ url_for('gerenciar_materiais_escritorio') }}">Gerenciar Materiais</a>
-                    <a href="{{ url_for('gerenciar_usuarios') }}">Gerenciar Usuários</a>
-                    <a href="{{ url_for('cadastro') }}">Cadastrar Usuário</a>
-                    <a href="{{ url_for('gerenciar_departamentos') }}">Gerenciar Departamentos</a>
-                {% else %}
-                    <a href="{{ url_for('fazer_requisicao') }}">Fazer Requisição</a>
-                    <a href="{{ url_for('historico') }}">Meu Histórico</a>
-                    <a href="{{ url_for('trocar_senha') }}">Trocar Senha</a>
+                {% set permissao = session.user.permissao %}
+
+                <!-- 1. Fazer Requisição (Solicitante e Admin) -->
+                {% if permissao in ['solicitante', 'administrador', 'admin'] %}
+                    <a href="{{ url_for('fazer_requisicao') }}" 
+                       class="nav-link {% if request.endpoint == 'fazer_requisicao' %}active{% endif %}">
+                        Fazer Requisição
+                    </a>
                 {% endif %}
+
+                <!-- 2. Requisições Pendentes (Abastecedor e Admin) -->
+                {% if permissao in ['administrador', 'admin', 'abastecedor'] %}
+                    <a href="{{ url_for('pendentes') }}" 
+                       class="nav-link {% if request.endpoint == 'pendentes' %}active{% endif %}">
+                        Requisições Pendentes
+                    </a>
+                {% endif %}
+
+                <!-- 3. Requisições Separadas (Abastecedor e Admin) -->
+                {% if permissao in ['administrador', 'admin', 'abastecedor'] %}
+                    <a href="{{ url_for('separados') }}" 
+                       class="nav-link {% if request.endpoint == 'separados' %}active{% endif %}">
+                        Requisições Separadas
+                    </a>
+                {% endif %}
+
+                <!-- 4. Histórico de Requisições (Todos) -->
+                <a href="{{ url_for('historico') }}" 
+                   class="nav-link {% if request.endpoint in ['historico', 'ver_requisicao'] %}active{% endif %}">
+                    Histórico
+                </a>
+
+                <!-- 5. Gerenciar Materiais Escritório (Abastecedor e Admin) -->
+                {% if permissao in ['administrador', 'admin', 'abastecedor'] %}
+                    <a href="{{ url_for('gerenciar_materiais_escritorio') }}" 
+                       class="nav-link {% if request.endpoint == 'gerenciar_materiais_escritorio' %}active{% endif %}">
+                        Materiais Escritório
+                    </a>
+                {% endif %}
+
+                <!-- 6. Gerenciar Materiais EPI (Abastecedor e Admin) -->
+                {% if permissao in ['administrador', 'admin', 'abastecedor'] %}
+                    <a href="{{ url_for('gerenciar_materiais_epi') }}" 
+                       class="nav-link {% if request.endpoint == 'gerenciar_materiais_epi' %}active{% endif %}">
+                        Materiais EPI
+                    </a>
+                {% endif %}
+
+                <!-- 7. Gerenciar Usuários (Apenas Admin) -->
+                {% if permissao in ['administrador', 'admin'] %}
+                    <a href="{{ url_for('gerenciar_usuarios') }}" 
+                       class="nav-link {% if request.endpoint == 'gerenciar_usuarios' %}active{% endif %}">
+                        Gerenciar Usuários
+                    </a>
+                {% endif %}
+
+                <!-- 8. Gerenciar Departamentos (Apenas Admin) -->
+                {% if permissao in ['administrador', 'admin'] %}
+                    <a href="{{ url_for('gerenciar_departamentos') }}" 
+                       class="nav-link {% if request.endpoint == 'gerenciar_departamentos' %}active{% endif %}">
+                        Gerenciar Departamentos
+                    </a>
+                {% endif %}
+
+                <!-- 9. Trocar Senha (Todos) -->
+                <a href="{{ url_for('trocar_senha') }}" 
+                   class="nav-link {% if request.endpoint == 'trocar_senha' %}active{% endif %}">
+                    Trocar Senha
+                </a>
             {% endif %}
         </div>
 

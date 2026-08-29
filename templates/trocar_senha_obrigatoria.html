@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Primeiro Acesso - Troca de Senha{% endblock %}
+
+{% block content %}
+<div style="max-width: 450px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+    <h2 style="text-align: center; color: #0d6efd; margin-top: 0;">🔒 Defina sua Nova Senha</h2>
+    <p style="text-align: center; color: #6c757d; font-size: 14px;">
+        Por motivos de segurança, você precisa cadastrar uma senha pessoal antes de acessar o sistema.
+    </p>
+
+    <form action="{{ url_for('trocar_senha_obrigatoria') }}" method="POST">
+        <div style="margin-bottom: 15px;">
+            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Nova Senha:</label>
+            <input type="password" name="nova_senha" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+        </div>
+        <div style="margin-bottom: 20px;">
+            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Confirme a Nova Senha:</label>
+            <input type="password" name="confirmacao_senha" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+        </div>
+        <button type="submit" style="width: 100%; padding: 12px; background-color: #198754; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
+            Salvar e Entrar no Sistema
+        </button>
+    </form>
+</div>
+{% endblock %}
