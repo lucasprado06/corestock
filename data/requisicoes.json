@@ -1,56 +1,109 @@
 [
     {
-        "id": 2,
-        "nome": "Solicitante Teste PTR",
-        "registro": "7586",
-        "departamento": "MAF Porto Real",
-        "categoria": "epi",
-        "data": "28/08/2026 06:09",
+        "id": 1,
+        "nome": "teste admin",
+        "registro": "1111",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "data": "31/08/2026 20:26",
         "status": "concluida",
         "itens": [
             {
-                "codigo": "564651",
-                "nome": "Protetor",
-                "quantidade": 1
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 2
+            },
+            {
+                "codigo": "2019",
+                "nome": "Manga de Protecao em Raspa para Braco",
+                "quantidade": 2
             }
         ],
-        "data_retirada": "2026-08-28",
-        "separado_por": "Lucas Prado",
-        "data_conclusao": "28/08/2026 06:10"
+        "data_retirada": "2026-09-01",
+        "separado_por": "Teste abastecedor",
+        "data_conclusao": "31/08/2026 20:28"
+    },
+    {
+        "id": 2,
+        "nome": "teste admin",
+        "registro": "1111",
+        "departamento": "Log\u00edstica",
+        "categoria": "epi",
+        "data": "31/08/2026 20:26",
+        "status": "concluida",
+        "itens": [
+            {
+                "codigo": "2011",
+                "nome": "Botina de Seguranca sem Aco N41",
+                "quantidade": 2
+            },
+            {
+                "codigo": "2016",
+                "nome": "Cinto de Seguranca Paraquedista com Talabarte",
+                "quantidade": 2
+            }
+        ],
+        "data_retirada": "2026-09-02",
+        "separado_por": "Teste abastecedor",
+        "data_conclusao": "31/08/2026 20:29"
     },
     {
         "id": 3,
-        "nome": "Solicitante Teste ",
-        "registro": "7432",
-        "departamento": "Log\u00edstica",
+        "nome": "MAF Porto Real",
+        "registro": "7585",
+        "departamento": "MAF Porto Real",
         "categoria": "escritorio",
-        "data": "28/08/2026 06:14",
+        "data": "31/08/2026 20:30",
         "status": "concluida",
         "itens": [
             {
-                "codigo": "30100002",
-                "nome": "APOIO PARA PES ACRINIL",
-                "quantidade": 1
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 2
             }
         ],
-        "data_retirada": "2026-08-28",
-        "separado_por": "Lucas Prado",
-        "data_conclusao": "28/08/2026 06:15"
+        "data_retirada": "2026-09-01",
+        "separado_por": "Teste abastecedor",
+        "data_conclusao": "31/08/2026 20:38"
     },
     {
         "id": 4,
-        "nome": "Teste abastecedor",
-        "registro": "1234",
-        "departamento": "Recursos Humanos",
-        "categoria": "escritorio",
-        "data": "28/08/2026 19:35",
-        "status": "pendente",
+        "nome": "MAF Porto Real",
+        "registro": "7585",
+        "departamento": "MAF Porto Real",
+        "categoria": "epi",
+        "data": "31/08/2026 20:30",
+        "status": "concluida",
         "itens": [
             {
-                "codigo": "1015",
-                "nome": "Marcador de Texto Amarelo",
+                "codigo": "2016",
+                "nome": "Cinto de Seguranca Paraquedista com Talabarte",
+                "quantidade": 2
+            }
+        ],
+        "data_retirada": "2026-09-01",
+        "separado_por": "Teste abastecedor",
+        "nota_fiscal": "NF- 467585",
+        "data_conclusao": "31/08/2026 20:38",
+        "finalizado_por": "Teste abastecedor"
+    },
+    {
+        "id": 5,
+        "nome": "MAF Porto Real",
+        "registro": "7585",
+        "departamento": "MAF Porto Real",
+        "categoria": "escritorio",
+        "data": "31/08/2026 20:37",
+        "status": "concluida",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
                 "quantidade": 1
             }
-        ]
+        ],
+        "data_retirada": "2026-09-01",
+        "separado_por": "Teste abastecedor",
+        "data_conclusao": "31/08/2026 20:38"
     }
 ]

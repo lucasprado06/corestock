@@ -1,72 +1,92 @@
 {% extends 'base.html' %}
 
-{% block title %}Gerenciar Materiais de Escritório{% endblock %}
+{% block title %}Gerenciar Materiais de Escritório - CoreStock{% endblock %}
 
 {% block content %}
-    <h1>Gerenciar Materiais</h1>
+    <h1 style="text-align: center; color: #0a2540; margin-bottom: 25px;">Gerenciar Materiais de Escritório</h1>
 
-    <!-- Abas de Navegação -->
-    <div class="category-tabs">
-        <a href="{{ url_for('gerenciar_materiais_escritorio') }}" class="tab-btn active">
-            📄 Materiais de Escritório
-        </a>
-        <a href="{{ url_for('gerenciar_materiais_epi') }}" class="tab-btn">
-            🛡️ Equipamentos de Proteção (EPI)
-        </a>
+    <!-- Grade Lado a Lado (2 Colunas) -->
+    <div class="grid-cadastro">
+        
+        <!-- Coluna 1: Importar em Massa -->
+        <div class="card-box">
+            <h3 class="card-title">Importar Materiais em Massa</h3>
+            <p class="card-subtitle">Envie uma planilha nos formatos <strong>.xlsx</strong> ou <strong>.csv</strong> para cadastrar múltiplos itens de uma vez.</p>
+            
+            <form method="POST" action="{{ url_for('importar_materiais_csv') }}" enctype="multipart/form-data">
+                <input type="hidden" name="categoria" value="escritorio">
+                
+                <div class="form-group">
+                    <label for="arquivo_csv">Arquivo de Planilha:</label>
+                    <input type="file" id="arquivo_csv" name="arquivo_csv" accept=".csv, .xlsx" required class="input-file">
+                </div>
+
+                <button type="submit" class="btn-primary">Carregar Planilha</button>
+            </form>
+
+            <small class="help-text">
+                Cabeçalho esperado: <code>codigo;descricao;quantidade_maxima</code>
+            </small>
+        </div>
+
+        <!-- Coluna 2: Cadastrar Individualmente -->
+        <div class="card-box">
+            <h3 class="card-title">Cadastrar Novo Material</h3>
+            <p class="card-subtitle">Preencha os dados abaixo para adicionar um único item manualmente ao inventário.</p>
+
+            <form action="{{ url_for('gerenciar_materiais_escritorio') }}" method="post">
+                <div class="form-group">
+                    <label for="codigo">Código:</label>
+                    <input type="text" id="codigo" name="codigo" placeholder="Ex: MAT-001" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="descricao">Descrição:</label>
+                    <input type="text" id="descricao" name="descricao" placeholder="Ex: Caneta Esferográfica Azul" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="quantidade_maxima">Qtd. Máxima por Requisição:</label>
+                    <input type="number" id="quantidade_maxima" name="quantidade_maxima" min="1" placeholder="Ex: 5" required>
+                </div>
+
+                <button type="submit" class="btn-primary">Cadastrar Material</button>
+            </form>
+        </div>
+
     </div>
 
-    <!-- Bloco de Importação em Massa (CSV e Excel) -->
-<div style="max-width: 500px; margin: 0 auto 30px auto; background-color: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #dee2e6;">
-    <h3 style="margin-top: 0; color: #007bff; font-size: 1.1em; text-align: center;">📥 Importar Materiais em Massa (CSV ou Excel)</h3>
-    <form action="{{ url_for('importar_materiais_csv') }}" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 10px;">
-        <input type="hidden" name="categoria" value="escritorio">
-        <input type="file" name="arquivo_csv" accept=".csv, .xlsx, .xls" required style="padding: 5px; border: 1px solid #ccc; border-radius: 4px; background: #fff;">
-        <button type="submit" class="btn-submit" style="background-color: #6c757d;">Carregar Planilha (CSV / Excel)</button>
-    </form>
-    <small style="color: #6c757d; display: block; margin-top: 8px; text-align: center;">
-        Formato do cabeçalho da planilha: <code>codigo;descricao;quantidade_maxima</code>
-    </small>
-</div>
+    <!-- Tabela e Campo de Busca -->
+    <div class="table-header-bar">
+        <h2>Materiais Cadastrados</h2>
+        
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="inputBuscaMateriais" onkeyup="filtrarMateriais()" placeholder="Buscar por código ou descrição...">
+        </div>
+    </div>
 
-    <h2>Cadastrar Material de Escritório</h2>
-    <form action="{{ url_for('gerenciar_materiais_escritorio') }}" method="post" style="max-width: 500px; margin: 0 auto; background: #f9f9f9; padding: 20px; border-radius: 8px;">
-        <div class="form-group">
-            <label for="codigo">Código:</label>
-            <input type="text" id="codigo" name="codigo" required>
-        </div>
-        <div class="form-group">
-            <label for="descricao">Descrição:</label>
-            <input type="text" id="descricao" name="descricao" required>
-        </div>
-        <div class="form-group">
-            <label for="quantidade_maxima">Quantidade Máxima por Requisição:</label>
-            <input type="number" id="quantidade_maxima" name="quantidade_maxima" required min="1">
-        </div>
-        <button type="submit" class="btn-submit">Adicionar Material</button>
-    </form>
-
-    <h2>Itens de Escritório Cadastrados</h2>
     {% if materiais %}
-        <table>
+        <table class="table" id="tabelaMateriais">
             <thead>
                 <tr>
                     <th>Código</th>
                     <th>Descrição</th>
-                    <th>Quantidade Máxima</th>
+                    <th>Qtd. Máxima</th>
                     <th>Ações</th>
                 </tr>
             </thead>
             <tbody>
-                {% for material in materiais %}
+                {% for m in materiais %}
                 <tr>
-                    <td>{{ material.codigo }}</td>
-                    <td>{{ material.descricao }}</td>
-                    <td>{{ material.quantidade_maxima }}</td>
+                    <td><strong>{{ m.codigo }}</strong></td>
+                    <td>{{ m.descricao }}</td>
+                    <td>{{ m.quantidade_maxima }}</td>
                     <td>
-                        <div style="display: flex; gap: 5px; align-items: center;">
-                            <a href="{{ url_for('editar_material', codigo_material=material.codigo) }}" class="btn-edit">Editar</a>
-                            <form action="{{ url_for('excluir_material') }}" method="post" onsubmit="return confirm('Tem certeza que deseja excluir {{ material.descricao }}?');" style="margin: 0;">
-                                <input type="hidden" name="codigo_material" value="{{ material.codigo }}">
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <a href="{{ url_for('editar_material', codigo_material=m.codigo) }}" class="btn-edit">Editar</a>
+                            <form action="{{ url_for('excluir_material') }}" method="post" onsubmit="return confirm('Tem certeza que deseja excluir o material {{ m.descricao }}?');" style="margin: 0;">
+                                <input type="hidden" name="codigo_material" value="{{ m.codigo }}">
                                 <button type="submit" class="btn-delete">Excluir</button>
                             </form>
                         </div>
@@ -75,26 +95,224 @@
                 {% endfor %}
             </tbody>
         </table>
+        <p id="semResultado" style="display: none; text-align: center; color: #64748b; margin-top: 20px;">
+            Nenhum material encontrado.
+        </p>
     {% else %}
-        <p style="text-align: center;">Nenhum material de escritório cadastrado.</p>
+        <p style="text-align: center; color: #64748b; margin-top: 20px;">Nenhum material de escritório cadastrado.</p>
     {% endif %}
 
     <style>
-        .category-tabs { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; }
-        .tab-btn { padding: 10px 20px; border-radius: 25px; background-color: #e9ecef; color: #495057; text-decoration: none; font-weight: bold; }
-        .tab-btn.active { background-color: #0d6efd; color: white; }
-        h1, h2 { text-align: center; color: #333; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .form-group input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        .btn-submit { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; }
-        .btn-edit { padding: 5px 10px; background-color: #ffc107; color: #212529; text-decoration: none; border-radius: 4px; font-size: 14px; display: inline-block; }
-        .btn-edit:hover { background-color: #e0a800; }
-        .btn-delete { padding: 5px 10px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
-        .btn-delete:hover { background-color: #c82333; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background-color: #007bff; color: white; }
-        tr:nth-child(even) { background-color: #f2f2f2; }
+        /* Layout em 2 Colunas */
+        .grid-cadastro {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 35px;
+        }
+
+        .card-box {
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            color: #0a2540;
+            margin-top: 0;
+            margin-bottom: 6px;
+            font-size: 1.15em;
+            font-weight: 700;
+        }
+
+        .card-subtitle {
+            color: #64748b;
+            font-size: 13.5px;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 13.5px;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"] {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+            color: #334155;
+            outline: none;
+        }
+
+        .input-file {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background: #f8fafc;
+            font-size: 13.5px;
+            color: #334155;
+        }
+
+        .form-group input:focus {
+            border-color: #0284c7;
+        }
+
+        .btn-primary {
+            width: 100%;
+            background-color: #0284c7;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary:hover {
+            background-color: #0369a1;
+        }
+
+        .help-text {
+            color: #64748b;
+            display: block;
+            margin-top: 15px;
+            font-size: 12.5px;
+        }
+
+        /* Barra de Título e Busca */
+        .table-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .table-header-bar h2 {
+            color: #0a2540;
+            margin: 0;
+            font-size: 1.2em;
+        }
+
+        .search-box {
+            position: relative;
+            min-width: 280px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 15px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 8px 12px 8px 36px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .search-box input:focus {
+            border-color: #0284c7;
+        }
+
+        .btn-edit {
+            padding: 6px 12px;
+            background-color: #f1f5f9;
+            color: #0284c7;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-edit:hover {
+            background-color: #e2e8f0;
+            color: #0369a1;
+        }
+
+        .btn-delete {
+            padding: 6px 12px;
+            background-color: #ffffff;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-delete:hover {
+            background-color: #fef2f2;
+            border-color: #dc2626;
+        }
+
+        /* Responsividade para telas menores */
+        @media (max-width: 768px) {
+            .grid-cadastro {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
+
+    <script>
+        function filtrarMateriais() {
+            const input = document.getElementById('inputBuscaMateriais');
+            const filter = input.value.toLowerCase().trim();
+            const tabela = document.getElementById('tabelaMateriais');
+            if (!tabela) return;
+
+            const linhas = tabela.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+            const msgSemResultado = document.getElementById('semResultado');
+            let encontrou = false;
+
+            for (let i = 0; i < linhas.length; i++) {
+                const linha = linhas[i];
+                const textoLinha = linha.textContent || linha.innerText;
+
+                if (textoLinha.toLowerCase().indexOf(filter) > -1) {
+                    linha.style.display = '';
+                    encontrou = true;
+                } else {
+                    linha.style.display = 'none';
+                }
+            }
+
+            if (!encontrou && linhas.length > 0) {
+                msgSemResultado.style.display = 'block';
+            } else {
+                msgSemResultado.style.display = 'none';
+            }
+        }
+    </script>
 {% endblock %}

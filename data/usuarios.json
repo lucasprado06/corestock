@@ -8,7 +8,8 @@
         "permissao": "abastecedor",
         "perfil": "abastecedor",
         "senha": "scrypt:32768:8:1$gbu7lJt7vhSaFeSM$7b0246c58a9452be66ca2495b4dd56d1dabb53995bb0618b9752889582bd3939979145aa9ed6d3ed8ca0c1e8bdef6cdf7455e79424019663f0c95ea8b2547542",
-        "primeiro_acesso": false
+        "primeiro_acesso": false,
+        "pode_solicitar_epi": false
     },
     {
         "registro": "1111",
@@ -30,6 +31,30 @@
         "permissao": "solicitante",
         "perfil": "solicitante",
         "senha": "scrypt:32768:8:1$dSyDkyV7VgD47mAD$a7e0748f431e2d4a4438c851f525d6725eb68729ec01381b52ba984f8cda5e3610789c2e80a598ca532a983f050567cce9af55d471ae74dcffa4f44ec35f6552",
+        "primeiro_acesso": false
+    },
+    {
+        "registro": "7431",
+        "username": "7431",
+        "nome": "Lucas Prado",
+        "centro_custo": "BR20_53030",
+        "departamento": "Log\u00edstica",
+        "permissao": "solicitante",
+        "perfil": "solicitante",
+        "pode_solicitar_epi": true,
+        "senha": "scrypt:32768:8:1$Seog4UwsAW1w7xyr$6b40e9bc46177d602ef7ff49b18d56fe79fa4fdb08480157ca94b8006917846e50dac8dd40f065bd2f5d3016cde3d751d22f2bcc0c9683f46e4ab3baf183903d",
+        "primeiro_acesso": false
+    },
+    {
+        "registro": "7585",
+        "username": "7585",
+        "nome": "MAF Porto Real",
+        "centro_custo": "BR20_53040",
+        "departamento": "MAF Porto Real",
+        "permissao": "solicitante",
+        "perfil": "solicitante",
+        "pode_solicitar_epi": true,
+        "senha": "scrypt:32768:8:1$1PwSc8E21WdoXOzP$2adae4368147ff81645f4ef7a6b1516c00c6d4e7bb37154792b32ecc616fca29d627c7947622135d37d1af8d8fb1eee4b8250736484a058a170a6dac19017993",
         "primeiro_acesso": false
     }
 ]

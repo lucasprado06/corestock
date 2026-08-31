@@ -2,120 +2,253 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}OMS - Office Supply Manager{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CoreStock - Sistema de Estoque{% endblock %}</title>
     <style>
-        /* Estilo comum para todas as páginas */
-        body {
-            font-family: Arial, sans-serif;
+        * {
             margin: 0;
             padding: 0;
-            background-color: #f4f4f9;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+
+        /* Plano de Fundo com o mesmo Gradiente da Tela de Login */
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a2540 0%, #1e3c72 50%, #0052d4 100%);
+            background-attachment: fixed;
+            color: #2b2b2b;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 10px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Formas Abstratas Flutuantes de Fundo */
+        .bg-shape-1 {
+            position: fixed;
+            top: -60px;
+            left: -60px;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-shape-2 {
+            position: fixed;
+            bottom: -100px;
+            right: -50px;
+            width: 450px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.04);
+            transform: rotate(-25deg);
+            border-radius: 75px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Container Principal Elevado com Leve Transparência (Glassmorphism Suave) */
         .container {
-            max-width: 1150px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-width: 1200px;
+            width: 100%;
+            margin: 10px auto;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            position: relative;
+            z-index: 1;
         }
+
+        /* Topo Azul Escuro Elegante */
         .header-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 16px 24px;
+            background: #0a2540;
+            border-radius: 12px;
             margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #e9ecef;
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(10, 37, 64, 0.2);
         }
+
         .header-bar .logo {
-            font-size: 2.5em;
-            font-weight: bold;
-            color: #0056b3;
+            font-size: 1.8em;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
+
+        .header-bar .logo::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 22px;
+            background: #00d2ff;
+            border-radius: 3px;
+        }
+
         .user-info {
             display: flex;
             align-items: center;
-            gap: 15px;
-        }
-        .user-info a {
-            color: #dc3545;
-            text-decoration: none;
-            font-weight: bold;
+            gap: 18px;
+            font-size: 14px;
         }
 
-        /* Menu de Navegação */
+        .user-info strong {
+            color: #00d2ff;
+        }
+
+        .btn-logout {
+            color: #ffffff;
+            background-color: #dc3545;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-logout:hover {
+            background-color: #bb2d3b;
+            box-shadow: 0 3px 10px rgba(220, 53, 69, 0.4);
+        }
+
+        /* Menu de Navegação Superior */
         .nav-bar {
             display: flex;
             justify-content: flex-start;
-            gap: 10px;
-            background-color: #e9ecef;
-            padding: 12px 18px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+            gap: 8px;
+            background-color: #eaf2f8;
+            padding: 10px 14px;
+            border-radius: 12px;
+            margin-bottom: 25px;
             flex-wrap: wrap;
             align-items: center;
+            border: 1px solid #d0e1f9;
         }
 
         .nav-link {
-            color: #007bff;
+            color: #0a2540;
             text-decoration: none;
-            font-weight: bold;
-            font-size: 14px;
+            font-weight: 600;
+            font-size: 13.5px;
             padding: 8px 14px;
-            border-radius: 6px;
+            border-radius: 8px;
             transition: all 0.2s ease-in-out;
             display: inline-block;
+            white-space: nowrap;
         }
 
         .nav-link:hover {
             background-color: #d1e2ff;
-            color: #0056b3;
-            text-decoration: none;
+            color: #0052d4;
         }
 
-        /* Destaque para a página atual/ativa */
+        /* Destaque Ativo no Menu */
         .nav-link.active {
-            background-color: #007bff;
+            background: linear-gradient(90deg, #007bff 0%, #0052d4 100%);
             color: #ffffff !important;
-            box-shadow: 0 3px 8px rgba(0, 123, 255, 0.35);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.35);
         }
 
+        /* Mensagens do Flask */
         .alert {
-            padding: 15px;
+            padding: 14px 18px;
             margin-bottom: 20px;
-            border: 1px solid transparent;
-            border-radius: 4px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
         }
+
         .alert-success {
-            color: #155724;
-            background-color: #d4edda;
-            border-color: #c3e6cb;
+            color: #0f5132;
+            background-color: #d1e7dd;
+            border: 1px solid #badbcc;
         }
+
         .alert-danger {
-            color: #721c24;
+            color: #842029;
             background-color: #f8d7da;
-            border-color: #f5c6cb;
+            border: 1px solid #f5c2c7;
         }
+
         .alert-warning {
-            color: #856404;
+            color: #664d03;
             background-color: #fff3cd;
-            border-color: #ffeeba;
+            border: 1px solid #ffecb5;
+        }
+
+        /* Estilização das Tabelas com Alto Contraste */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+
+        .table th {
+            background-color: #0a2540 !important;
+            color: #ffffff !important;
+            padding: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            text-align: left;
+            border: none;
+        }
+
+        .table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+            color: #334155;
+            vertical-align: middle;
+            background-color: #ffffff;
+        }
+
+        .table tbody tr:nth-child(even) td {
+            background-color: #f8fafc;
+        }
+
+        .table tbody tr:hover td {
+            background-color: #f1f5f9;
         }
     </style>
 </head>
 <body>
+
+    <!-- Formas Geométricas Flutuantes de Fundo -->
+    <div class="bg-shape-1"></div>
+    <div class="bg-shape-2"></div>
+
     <div class="container">
+        <!-- Topo da Aplicação -->
         <div class="header-bar">
             <span class="logo">CoreStock</span>
             {% if 'user' in session %}
             <div class="user-info">
                 <p style="margin: 0;">Olá, <strong>{{ session.user.nome }}</strong>!</p>
-                <a href="{{ url_for('logout') }}">Sair</a>
+                <a href="{{ url_for('logout') }}" class="btn-logout">Sair</a>
             </div>
             {% endif %}
         </div>
 
+        <!-- Menu de Navegação -->
         <div class="nav-bar">
             {% if 'user' in session %}
                 {% set permissao = session.user.permissao %}
@@ -190,6 +323,7 @@
             {% endif %}
         </div>
 
+        <!-- Bloco de Mensagens do Flask -->
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
@@ -198,8 +332,10 @@
         {% endif %}
         {% endwith %}
 
+        <!-- Conteúdo Específico de Cada Tela -->
         {% block content %}
         {% endblock %}
     </div>
+
 </body>
 </html>

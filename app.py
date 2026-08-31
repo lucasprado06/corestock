@@ -8,6 +8,7 @@ import openpyxl
 import io
 import json
 import unicodedata
+import pandas as pd
 
 app = Flask(__name__)
 app.secret_key = 'sua_chave_secreta_aqui'
@@ -237,7 +238,6 @@ def trocar_senha():
 
     return render_template('trocar_senha.html')
 
-# --- REQUISIÇÕES ---
 @app.route('/fazer_requisicao')
 @login_required
 @solicitante_ou_admin_required
@@ -246,19 +246,23 @@ def fazer_requisicao():
     departamentos = carregar_departamentos()
     
     usuario_logado = session['user']
-    departamento_usuario = usuario_logado.get('departamento', '')
+    registro_logado = str(usuario_logado.get('registro')).strip()
     permissao_usuario = usuario_logado.get('permissao', '')
     
-    deps_permitidos_epi = ["MAF Betim", "MAF Porto Real"]
+    # Busca as informações atualizadas do usuário no banco/json
+    usuarios = carregar_usuarios()
+    dados_usuario = next((u for u in usuarios if str(u.get('registro') or u.get('username', '')).strip() == registro_logado), {})
+    
+    # Acesso permitido se for Admin OU se a flag individual pode_solicitar_epi for True
     pode_acessar_epi = (
         permissao_usuario in ['admin', 'administrador'] or 
-        departamento_usuario in deps_permitidos_epi
+        dados_usuario.get('pode_solicitar_epi', False) is True
     )
     
     categoria_atual = request.args.get('categoria', 'escritorio')
     
     if categoria_atual == 'epi' and not pode_acessar_epi:
-        flash('Seu departamento não possui permissão para solicitar EPIs.', 'warning')
+        flash('Seu usuário não possui permissão para solicitar EPIs. Contate o administrador.', 'warning')
         return redirect(url_for('fazer_requisicao', categoria='escritorio'))
     
     materiais_filtrados = [
@@ -375,15 +379,54 @@ def separados():
 @gestor_required
 def finalizar_requisicao():
     requisicao_id = str(request.form.get('requisicao_id'))
-    registro_solicitante = str(request.form.get('registro_solicitante', '')).strip()
-    senha_solicitante = request.form.get('senha_solicitante')
-
     requisicoes = carregar_requisicoes()
     requisicao = next((r for r in requisicoes if str(r['id']) == requisicao_id), None)
 
     if not requisicao:
         flash('Requisição não encontrada.', 'danger')
         return redirect(url_for('separados'))
+
+    categoria = requisicao.get('categoria', 'escritorio')
+    usuario_logado = session['user']
+    
+    # --- FLUXO PARA EPIs / UNIDADES REMOTAS (Validação via NF + Senha do Abastecedor) ---
+    if categoria == 'epi':
+        numero_nf = request.form.get('numero_nf', '').strip()
+        senha_abastecedor = request.form.get('senha_abastecedor', '').strip()
+
+        if not numero_nf:
+            flash('Por favor, informe o número da Nota Fiscal de Transferência.', 'warning')
+            return redirect(url_for('separados'))
+
+        # Valida a senha do próprio abastecedor logado
+        registro_logado = str(usuario_logado.get('registro')).strip()
+        usuarios = carregar_usuarios()
+        abastecedor_atual = next((u for u in usuarios if str(u.get('registro') or u.get('username', '')).strip() == registro_logado), None)
+
+        if not abastecedor_atual:
+            flash('Sessão inválida. Faça login novamente.', 'danger')
+            return redirect(url_for('separados'))
+
+        senha_salva = abastecedor_atual.get('senha', '')
+        senha_valida = check_password_hash(senha_salva, senha_abastecedor) if (senha_salva.startswith('scrypt:') or senha_salva.startswith('pbkdf2:')) else (senha_salva == senha_abastecedor)
+
+        if not senha_valida:
+            flash('Sua senha de confirmação está incorreta. A baixa não foi realizada.', 'danger')
+            return redirect(url_for('separados'))
+
+        # Grava os dados de envio da NF
+        requisicao['status'] = 'concluida'
+        requisicao['nota_fiscal'] = numero_nf
+        requisicao['data_conclusao'] = datetime.now().strftime('%d/%m/%Y %H:%M')
+        requisicao['finalizado_por'] = usuario_logado.get('nome', '')
+        salvar_requisicoes(requisicoes)
+
+        flash(f'Requisição #{requisicao_id} enviada com sucesso! NF: {numero_nf}', 'success')
+        return redirect(url_for('separados'))
+
+    # --- FLUXO PARA MATERIAIS DE ESCRITÓRIO (Validação por Senha do Solicitante) ---
+    registro_solicitante = str(request.form.get('registro_solicitante', '')).strip()
+    senha_solicitante = request.form.get('senha_solicitante')
 
     registro_original = str(requisicao.get('registro', '')).strip()
     if registro_solicitante != registro_original:
@@ -398,11 +441,7 @@ def finalizar_requisicao():
         return redirect(url_for('separados'))
 
     senha_salva = solicitante.get('senha', '')
-    senha_valida = False
-    if senha_salva.startswith('scrypt:') or senha_salva.startswith('pbkdf2:'):
-        senha_valida = check_password_hash(senha_salva, senha_solicitante)
-    else:
-        senha_valida = (senha_salva == senha_solicitante)
+    senha_valida = check_password_hash(senha_salva, senha_solicitante) if (senha_salva.startswith('scrypt:') or senha_salva.startswith('pbkdf2:')) else (senha_salva == senha_solicitante)
 
     if not senha_valida:
         flash('Senha incorreta. A requisição não foi finalizada.', 'danger')
@@ -410,6 +449,7 @@ def finalizar_requisicao():
 
     requisicao['status'] = 'concluida'
     requisicao['data_conclusao'] = datetime.now().strftime('%d/%m/%Y %H:%M')
+    requisicao['finalizado_por'] = usuario_logado.get('nome', '')
     salvar_requisicoes(requisicoes)
 
     flash('Requisição finalizada com sucesso!', 'success')
@@ -472,81 +512,107 @@ def excluir_requisicao(requisicao_id):
 
     return redirect(request.referrer or url_for('historico'))
 
-@app.route('/exportar_relatorio_excel', methods=['GET'])
+@app.route('/exportar_relatorio_excel')
 @login_required
 @gestor_required
 def exportar_relatorio_excel():
+    requisicoes = carregar_requisicoes()
+    
+    # Obtém as datas informadas no filtro
     data_inicio_str = request.args.get('data_inicio')
     data_fim_str = request.args.get('data_fim')
-
-    requisicoes = carregar_requisicoes()
-    usuarios = carregar_usuarios()
     
-    mapa_centro_custo = {
-        str(u.get('registro') or u.get('username', '')).strip(): u.get('centro_custo', 'N/A') 
-        for u in usuarios
-    }
+    data_inicio = datetime.strptime(data_inicio_str, '%Y-%m-%d') if data_inicio_str else None
+    data_fim = datetime.strptime(data_fim_str, '%Y-%m-%d') if data_fim_str else None
 
-    requisicoes_filtradas = []
-    for r in requisicoes:
+    linhas_relatorio = []
+
+    for req in requisicoes:
+        # Tenta converter a data da requisição para comparação (Formato esperado: DD/MM/YYYY ou YYYY-MM-DD)
+        data_req_raw = req.get('data', '')
         try:
-            data_req_str = r.get('data', r.get('data_hora', ''))[:10]
-            if '/' in data_req_str:
-                data_req = datetime.strptime(data_req_str, '%d/%m/%Y').date()
+            if '/' in data_req_raw:
+                data_req_dt = datetime.strptime(data_req_raw.split(' ')[0], '%d/%m/%Y')
             else:
-                data_req = datetime.strptime(data_req_str, '%Y-%m-%d').date()
+                data_req_dt = datetime.strptime(data_req_raw.split(' ')[0], '%Y-%m-%d')
         except Exception:
-            data_req = None
+            data_req_dt = None
 
-        if data_req:
-            if data_inicio_str:
-                dt_ini = datetime.strptime(data_inicio_str, '%Y-%m-%d').date()
-                if data_req < dt_ini:
-                    continue
-            if data_fim_str:
-                dt_fim = datetime.strptime(data_fim_str, '%Y-%m-%d').date()
-                if data_req > dt_fim:
-                    continue
-                
-        requisicoes_filtradas.append(r)
+        # Aplicação do Filtro por Data
+        if data_inicio and data_req_dt and data_req_dt < data_inicio:
+            continue
+        if data_fim and data_req_dt and data_req_dt > data_fim:
+            continue
 
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "Relatório de Requisições"
-
-    headers = [
-        "ID Requisição", "Data/Hora", "Solicitante", "Registro", "Centro de Custo", 
-        "Departamento", "Código Material", "Descrição Material", 
-        "Quantidade", "Status"
-    ]
-    ws.append(headers)
-
-    for r in requisicoes_filtradas:
-        reg_solicitante = str(r.get('registro', '')).strip()
-        cc_solicitante = mapa_centro_custo.get(reg_solicitante, 'N/A')
+        # Garante a leitura dos itens da requisição
+        itens = req.get('itens', [])
         
-        for item in r.get('itens', []):
-            ws.append([
-                r.get('id'),
-                r.get('data'),
-                r.get('nome'),
-                reg_solicitante,
-                cc_solicitante,
-                r.get('departamento'),
-                item.get('codigo'),
-                item.get('nome') or item.get('descricao'),
-                item.get('quantidade'),
-                r.get('status')
-            ])
+        # Mapeamento do Status para o Excel
+        status_traduzido = req.get('status', '').capitalize()
+        if status_traduzido.lower() == 'concluida':
+            status_traduzido = 'Concluída'
 
-    stream = io.BytesIO()
-    wb.save(stream)
-    stream.seek(0)
+        categoria_traduzida = 'EPI' if req.get('categoria') == 'epi' else 'Escritório'
 
-    filename = f"relatorio_requisicoes_{data_inicio_str or 'inicio'}_a_{data_fim_str or 'fim'}.xlsx"
-    return send_file(stream, as_attachment=True, download_name=filename, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        # Se houver itens na requisição, gera uma linha por item
+        if itens:
+            for item in itens:
+                linhas_relatorio.append({
+                    'ID Requisição': req.get('id'),
+                    'Data Solicitação': req.get('data'),
+                    'Status': status_traduzido,
+                    'Tipo/Categoria': categoria_traduzida,
+                    'Nota Fiscal': req.get('nota_fiscal', '-'),
+                    'Solicitante': req.get('nome'),
+                    'Registro': req.get('registro'),
+                    'Departamento': req.get('departamento'),
+                    'Código Material': item.get('codigo', '-'),
+                    'Descrição Material': item.get('nome') or item.get('descricao', '-'),
+                    'Quantidade': item.get('quantidade', 0),
+                    'Separado Por': req.get('separado_por', '-'),
+                    'Finalizado Por': req.get('finalizado_por', '-'),
+                    'Data Conclusão/Retirada': req.get('data_conclusao') or req.get('data_retirada') or '-'
+                })
+        else:
+            # Caso a requisição não possua itens especificados
+            linhas_relatorio.append({
+                'ID Requisição': req.get('id'),
+                'Data Solicitação': req.get('data'),
+                'Status': status_traduzido,
+                'Tipo/Categoria': categoria_traduzida,
+                'Nota Fiscal': req.get('nota_fiscal', '-'),
+                'Solicitante': req.get('nome'),
+                'Registro': req.get('registro'),
+                'Departamento': req.get('departamento'),
+                'Código Material': '-',
+                'Descrição Material': 'Sem itens registrados',
+                'Quantidade': 0,
+                'Separado Por': req.get('separado_por', '-'),
+                'Finalizado Por': req.get('finalizado_por', '-'),
+                'Data Conclusão/Retirada': req.get('data_conclusao') or req.get('data_retirada') or '-'
+            })
 
-# --- GERENCIAMENTO DE USUÁRIOS E MATERIAIS ---
+    if not linhas_relatorio:
+        flash('Nenhuma requisição encontrada para o período selecionado.', 'warning')
+        return redirect(url_for('historico'))
+
+    # Gera a planilha usando a biblioteca Pandas
+    df = pd.DataFrame(linhas_relatorio)
+    
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Histórico CoreStock')
+    
+    output.seek(0)
+    nome_arquivo = f"Relatorio_CoreStock_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name=nome_arquivo
+    )
+
 @app.route('/gerenciar_usuarios', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -562,11 +628,28 @@ def gerenciar_usuarios():
             departamentos.append({'nome': str(d)})
     
     if request.method == 'POST':
+        # Se for edição rápida de permissão de EPI
+        if 'acao_editar_epi' in request.form:
+            reg_target = str(request.form.get('registro_target')).strip()
+            status_epi = request.form.get('pode_solicitar_epi') == 'true'
+            
+            for u in usuarios:
+                reg_u = str(u.get('registro') or u.get('username', '')).strip()
+                if reg_u == reg_target:
+                    u['pode_solicitar_epi'] = status_epi
+                    break
+                    
+            salvar_usuarios(usuarios)
+            flash('Permissão de EPI atualizada com sucesso!', 'success')
+            return redirect(url_for('gerenciar_usuarios'))
+
+        # Cadastro de Novo Usuário
         registro = str(request.form.get('registro')).strip()
         nome = request.form.get('nome').strip()
         centro_custo = request.form.get('centro_custo').strip()
         departamento = request.form.get('departamento')
         permissao = request.form.get('permissao')
+        pode_solicitar_epi = 'pode_solicitar_epi' in request.form  # Checkbox marcada = True
         senha_inicial = "Mudar123@"
 
         if any(str(u.get('registro') or u.get('username', '')).strip() == registro for u in usuarios):
@@ -580,11 +663,12 @@ def gerenciar_usuarios():
                 "departamento": departamento,
                 "permissao": permissao,
                 "perfil": permissao,
+                "pode_solicitar_epi": pode_solicitar_epi,
                 "senha": senha_inicial,
                 "primeiro_acesso": True
             })
             salvar_usuarios(usuarios)
-            flash(f'Usuário {nome} criado com sucesso! Senha temporária: {senha_inicial}', 'success')
+            flash(f'Usuário {nome} criado com sucesso!', 'success')
             return redirect(url_for('gerenciar_usuarios'))
 
     return render_template('gerenciar_usuarios.html', usuarios=usuarios, departamentos=departamentos)

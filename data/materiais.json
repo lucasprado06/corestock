@@ -1,11 +1,5 @@
 [
     {
-        "codigo": "52165165",
-        "descricao": "Luva",
-        "quantidade_maxima": 12,
-        "categoria": "epi"
-    },
-    {
         "codigo": "564651",
         "descricao": "Protetor",
         "quantidade_maxima": 23,
@@ -135,6 +129,18 @@
         "codigo": "2019",
         "descricao": "Manga de Protecao em Raspa para Braco",
         "quantidade_maxima": 6,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "12095-050",
+        "descricao": "luvex",
+        "quantidade_maxima": 2,
+        "categoria": "epi"
+    },
+    {
+        "codigo": "12095-050",
+        "descricao": "lapis",
+        "quantidade_maxima": 5,
         "categoria": "escritorio"
     }
 ]
