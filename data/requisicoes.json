@@ -105,5 +105,269 @@
         "data_retirada": "2026-09-01",
         "separado_por": "Teste abastecedor",
         "data_conclusao": "31/08/2026 20:38"
+    },
+    {
+        "id": 6,
+        "nome": "teste admin",
+        "registro": "1111",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "data": "02/09/2026 20:22",
+        "status": "concluida",
+        "itens": [
+            {
+                "codigo": "12095-050",
+                "nome": "luvex",
+                "quantidade": 2
+            }
+        ],
+        "data_retirada": "02/09/2026 20:22",
+        "separado_por": "teste admin",
+        "data_conclusao": "02/09/2026 20:22",
+        "finalizado_por": "teste admin"
+    },
+    {
+        "id": 7,
+        "nome": "teste admin",
+        "registro": "1111",
+        "departamento": "Log\u00edstica",
+        "categoria": "epi",
+        "data": "02/09/2026 20:23",
+        "status": "concluida",
+        "itens": [
+            {
+                "codigo": "2015",
+                "nome": "Avental de Raspa de Couro para Soldador",
+                "quantidade": 1
+            }
+        ],
+        "data_retirada": "02/09/2026 20:24",
+        "separado_por": "teste admin",
+        "nota_fiscal": "52158",
+        "data_conclusao": "02/09/2026 20:29",
+        "finalizado_por": "teste admin"
+    },
+    {
+        "id": 8,
+        "nome": "teste admin",
+        "registro": "1111",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "data": "02/09/2026 20:26",
+        "status": "concluida",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 1
+            }
+        ],
+        "data_retirada": "02/09/2026 20:27",
+        "separado_por": "teste admin",
+        "data_conclusao": "02/09/2026 20:29",
+        "finalizado_por": "teste admin"
+    },
+    {
+        "id": 9,
+        "nome": "teste admin",
+        "registro": "1111",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "data": "02/09/2026 20:27",
+        "status": "concluida",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 2
+            }
+        ],
+        "data_retirada": "02/09/2026 20:27",
+        "separado_por": "teste admin",
+        "data_conclusao": "02/09/2026 20:29",
+        "finalizado_por": "teste admin"
+    },
+    {
+        "id": 10,
+        "nome": "teste admin",
+        "registro": "1111",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "data": "02/09/2026 21:30",
+        "status": "concluida",
+        "itens": [],
+        "data_retirada": "02/09/2026 21:30",
+        "separado_por": "teste admin",
+        "data_conclusao": "02/09/2026 21:30",
+        "finalizado_por": "teste admin"
+    },
+    {
+        "id": 11,
+        "nome": "teste admin",
+        "registro": "1111",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "data": "02/09/2026 21:34",
+        "status": "concluida",
+        "itens": [
+            {
+                "codigo": "2019",
+                "nome": "Manga de Protecao em Raspa para Braco",
+                "quantidade": 1
+            },
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 0
+            }
+        ],
+        "data_retirada": "02/09/2026 21:35",
+        "separado_por": "teste admin",
+        "data_conclusao": "02/09/2026 21:35",
+        "finalizado_por": "teste admin"
+    },
+    {
+        "id": 12,
+        "nome": "Lucas Prado",
+        "registro": "7431",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "data": "02/09/2026 21:44",
+        "status": "pendente",
+        "itens": [
+            {
+                "codigo": "2019",
+                "nome": "Manga de Protecao em Raspa para Braco",
+                "quantidade": 1
+            }
+        ]
+    },
+    {
+        "id": 13,
+        "nome": "Lucas Prado",
+        "registro": "7431",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "data": "02/09/2026 21:44",
+        "status": "separado",
+        "itens": [
+            {
+                "codigo": "12095-050",
+                "nome": "luvex",
+                "quantidade": 1
+            }
+        ],
+        "data_retirada": "02/09/2026 21:45",
+        "separado_por": "Lucas Prado"
+    },
+    {
+        "id": 14,
+        "nome": "Lucas Prado",
+        "registro": "7431",
+        "departamento": "Log\u00edstica",
+        "categoria": "epi",
+        "data": "02/09/2026 21:44",
+        "status": "pendente",
+        "itens": [
+            {
+                "codigo": "2015",
+                "nome": "Avental de Raspa de Couro para Soldador",
+                "quantidade": 1
+            }
+        ]
+    },
+    {
+        "id": 15,
+        "nome": "Lucas Prado",
+        "registro": "7431",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "data": "02/09/2026 21:58",
+        "status": "pendente",
+        "itens": [
+            {
+                "codigo": "12095-050",
+                "nome": "luvex",
+                "quantidade": 1,
+                "quantidade_solicitada": 1,
+                "quantidade_separada": 1
+            }
+        ]
+    },
+    {
+        "id": 16,
+        "nome": "Lucas Prado",
+        "registro": "7431",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "data": "02/09/2026 21:58",
+        "status": "pendente",
+        "itens": [
+            {
+                "codigo": "12095-050",
+                "nome": "luvex",
+                "quantidade": 1,
+                "quantidade_solicitada": 1,
+                "quantidade_separada": 1
+            }
+        ]
+    },
+    {
+        "id": 17,
+        "nome": "Lucas Prado",
+        "registro": "7431",
+        "departamento": "Log\u00edstica",
+        "categoria": "epi",
+        "data": "02/09/2026 22:01",
+        "status": "separado",
+        "itens": [
+            {
+                "codigo": "2017",
+                "nome": "Colete Refletivo de Alta Visibilidade Tam G",
+                "quantidade": 8,
+                "quantidade_solicitada": 8,
+                "quantidade_separada": 4
+            }
+        ],
+        "data_retirada": "02/09/2026 22:02",
+        "separado_por": "Lucas Prado"
+    },
+    {
+        "id": 18,
+        "nome": "Lucas Prado",
+        "username": "lucas.prado",
+        "registro": "7431",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "data": "02/09/2026 22:03",
+        "status": "pendente",
+        "itens": [
+            {
+                "codigo": "12095-050",
+                "nome": "lapis",
+                "quantidade": 5,
+                "quantidade_solicitada": 5,
+                "quantidade_separada": 5
+            }
+        ]
+    },
+    {
+        "id": 19,
+        "nome": "Lucas Prado",
+        "username": "lucas.prado",
+        "registro": "7431",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "data": "02/09/2026 22:09",
+        "status": "pendente",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 20,
+                "quantidade_solicitada": 20,
+                "quantidade_separada": 20
+            }
+        ]
     }
 ]

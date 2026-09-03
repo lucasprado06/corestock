@@ -41,7 +41,7 @@
 
             {% if requisicao.data_retirada %}
             <div class="info-item">
-                <strong>Data de Retirada:</strong>
+                <strong>Data de Separação:</strong>
                 <span>{{ requisicao.data_retirada }}</span>
             </div>
             {% endif %}
@@ -69,43 +69,89 @@
         </div>
 
         <h3 class="section-title">Itens Solicitados</h3>
-        <table class="table-detalhes">
-            <thead>
-                <tr>
-                    <th>Código</th>
-                    <th>Descrição do Item</th>
-                    <th style="text-align: center;">Quantidade</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in requisicao.itens %}
-                <tr>
-                    <td><code>{{ item.codigo or '-' }}</code></td>
-                    <td>{{ item.nome or item.descricao }}</td>
-                    <td style="text-align: center;"><strong>{{ item.quantidade }}</strong></td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="3" style="text-align: center; color: #64748b;">Nenhum item encontrado nesta requisição.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
 
-        <!-- Ações do Rodapé (Ocultas na Impressão) -->
-        <div class="actions-bar no-print">
-            <a href="{{ request.referrer or url_for('historico') }}" class="btn btn-secondary">
-                ← Voltar
-            </a>
-            <button type="button" onclick="window.print()" class="btn btn-primary">
-                🖨️ Imprimir Requisição
-            </button>
-        </div>
+        <!-- Formulário de Separação e Ajuste de Itens -->
+        <form action="{{ url_for('concluir_requisicao') }}" method="POST" id="formSeparacao">
+            <input type="hidden" name="requisicao_id" value="{{ requisicao.id }}">
+
+            <table class="table-detalhes">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Descrição do Item</th>
+                        <th style="text-align: center; width: 130px;">Qtd. Solicitada</th>
+                        <th style="text-align: center; width: 150px;">Qtd. Separada</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in requisicao.itens %}
+                    {% set qtd_sol = item.quantidade_solicitada if item.quantidade_solicitada is defined else item.quantidade %}
+                    {% set qtd_sep = item.quantidade_separada if item.quantidade_separada is defined else item.quantidade %}
+
+                    <tr class="{% if qtd_sep == 0 %}row-zerado{% elif qtd_sep < qtd_sol %}row-parcial{% endif %}">
+                        <td><code>{{ item.codigo or '-' }}</code></td>
+                        <td>
+                            {{ item.nome or item.descricao }}
+                            {% if qtd_sep == 0 %}
+                                <span class="tag-sem-estoque">(Sem Estoque / Não Entregue)</span>
+                            {% elif qtd_sep < qtd_sol %}
+                                <span class="tag-parcial">(Atendimento Parcial)</span>
+                            {% endif %}
+                        </td>
+                        
+                        <!-- Coluna Solicitado (Fixa) -->
+                        <td style="text-align: center;">
+                            <strong style="color: #475569;">{{ qtd_sol }}</strong>
+                        </td>
+
+                        <!-- Coluna Separado (Editável diretamente por número) -->
+                        <td style="text-align: center;">
+                            {% if requisicao.status == 'pendente' and session.user.permissao in ['admin', 'administrador', 'abastecedor'] %}
+                                <input type="number" 
+                                       id="input_qtd_{{ item.codigo }}" 
+                                       name="qtd_item_{{ item.codigo }}" 
+                                       value="{{ qtd_sep }}" 
+                                       min="0" 
+                                       max="{{ qtd_sol }}"
+                                       class="input-qty-direct no-print">
+                                <span class="print-only"><strong>{{ qtd_sep }}</strong></span>
+                            {% else %}
+                                <strong>{{ qtd_sep }}</strong>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: #64748b;">Nenhum item encontrado nesta requisição.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Ações do Rodapé (Ocultas na Impressão) -->
+            <div class="actions-bar no-print">
+                <a href="{{ request.referrer or url_for('historico') }}" class="btn btn-secondary">
+                    ← Voltar
+                </a>
+
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" onclick="window.print()" class="btn btn-outline">
+                        🖨️ Imprimir Requisição
+                    </button>
+
+                    {% if requisicao.status == 'pendente' and session.user.permissao in ['admin', 'administrador', 'abastecedor'] %}
+                        <button type="submit" class="btn btn-success-action" onclick="return confirm('Confirmar a separação desta requisição com as quantidades informadas?');">
+                            📦 Marcar como Separado
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
     </div>
 
     <style>
         .requisicao-card {
-            max-width: 850px;
+            max-width: 900px;
             margin: 20px auto;
             background: #ffffff;
             padding: 30px;
@@ -186,6 +232,7 @@
             border-bottom: 1px solid #e2e8f0;
             padding: 12px;
             text-align: left;
+            vertical-align: middle;
         }
 
         .table-detalhes th {
@@ -196,6 +243,60 @@
 
         .table-detalhes tbody tr:nth-child(even) {
             background-color: #f8fafc;
+        }
+
+        /* Destaques de estoque */
+        .row-zerado {
+            background-color: #fff5f5 !important;
+            color: #991b1b;
+        }
+
+        .row-parcial {
+            background-color: #fefce8 !important;
+        }
+
+        .tag-sem-estoque {
+            font-size: 12px;
+            color: #dc2626;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+
+        .tag-parcial {
+            font-size: 12px;
+            color: #ca8a04;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+
+        /* Estilo do campo de quantidade direta */
+        .input-qty-direct {
+            width: 65px;
+            padding: 6px 8px;
+            text-align: center;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #0a2540;
+            background-color: #ffffff;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            appearance: textfield;
+            -webkit-appearance: textfield;
+            -moz-appearance: textfield;
+        }
+
+        .input-qty-direct:focus {
+            border-color: #0284c7;
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+        }
+
+        .input-qty-direct::-webkit-outer-spin-button,
+        .input-qty-direct::-webkit-inner-spin-button {
+            appearance: none;
+            -webkit-appearance: none;
+            margin: 0;
         }
 
         code {
@@ -232,8 +333,13 @@
         .btn-secondary { background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }
         .btn-secondary:hover { background-color: #e2e8f0; }
 
-        .btn-primary { background-color: #0284c7; color: white; }
-        .btn-primary:hover { background-color: #0369a1; }
+        .btn-outline { background-color: #ffffff; color: #0284c7; border: 1px solid #cbd5e1; }
+        .btn-outline:hover { background-color: #f0f9ff; }
+
+        .btn-success-action { background-color: #16a34a; color: white; }
+        .btn-success-action:hover { background-color: #15803d; }
+
+        .print-only { display: none; }
 
         /* Regra de Impressão */
         @media print {
@@ -259,6 +365,10 @@
 
             .no-print {
                 display: none !important;
+            }
+
+            .print-only {
+                display: inline !important;
             }
 
             .table-detalhes th {

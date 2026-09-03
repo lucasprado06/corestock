@@ -277,15 +277,15 @@
                 {% endif %}
             {% endwith %}
 
-            <form action="{{ url_for('login') }}" method="POST">
+            <form action="{{ url_for('login') }}" method="POST" autocomplete="off">
                 <div class="form-group">
-                    <label for="registro">Matrícula / Usuário</label>
-                    <input type="text" id="registro" name="registro" placeholder="Digite seu registro" required autocomplete="off">
+                    <label for="username">Nome de Usuário</label>
+                    <input type="text" id="username" name="username" placeholder="Digite seu usuário" required autocomplete="off">
                 </div>
 
                 <div class="form-group">
                     <label for="senha">Senha</label>
-                    <input type="password" id="senha" name="senha" placeholder="••••••••" required>
+                    <input type="password" id="senha" name="senha" placeholder="••••••••" required autocomplete="new-password">
                 </div>
 
                 <button type="submit" class="btn-submit">Entrar</button>

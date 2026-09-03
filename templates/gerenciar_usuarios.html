@@ -7,20 +7,26 @@
 
     <!-- Cadastrar Novo Usuário -->
     <h2 style="text-align: center; color: #0a2540; margin-bottom: 15px; font-size: 1.25em;">Cadastrar Novo Usuário</h2>
-    <form action="{{ url_for('gerenciar_usuarios') }}" method="post" class="user-form">
+    <form action="{{ url_for('gerenciar_usuarios') }}" method="post" class="user-form" autocomplete="off">
+        
         <div class="form-group">
-            <label for="registro">Registro / Usuário:</label>
-            <input type="text" id="registro" name="registro" placeholder="Ex: 102030" required>
+            <label for="username">Nome de Usuário (Login):</label>
+            <input type="text" id="username" name="username" placeholder="Ex: joao.silva" autocomplete="off" required>
+        </div>
+
+        <div class="form-group">
+            <label for="registro">Registro (Matrícula ID):</label>
+            <input type="text" id="registro" name="registro" placeholder="Ex: 102030" autocomplete="off" required>
         </div>
 
         <div class="form-group">
             <label for="nome">Nome Completo:</label>
-            <input type="text" id="nome" name="nome" placeholder="Ex: João da Silva" required>
+            <input type="text" id="nome" name="nome" placeholder="Ex: João da Silva" autocomplete="off" required>
         </div>
 
         <div class="form-group">
             <label for="centro_custo">Centro de Custo:</label>
-            <input type="text" id="centro_custo" name="centro_custo" placeholder="Ex: CC-1020" required>
+            <input type="text" id="centro_custo" name="centro_custo" placeholder="Ex: CC-1020" autocomplete="off" required>
         </div>
 
         <div class="form-group">
@@ -63,7 +69,8 @@
             <thead>
                 <tr>
                     <th>Nome</th>
-                    <th>Registro / Usuário</th>
+                    <th>Usuário (Login)</th>
+                    <th>Registro (ID)</th>
                     <th>Centro de Custo</th>
                     <th>Departamento</th>
                     <th>Perfil</th>
@@ -75,7 +82,8 @@
                 {% for usuario in usuarios %}
                 <tr>
                     <td><strong>{{ usuario.nome }}</strong></td>
-                    <td>{{ usuario.registro or usuario.username }}</td>
+                    <td><code>{{ usuario.username or usuario.registro }}</code></td>
+                    <td>{{ usuario.registro or '-' }}</td>
                     <td>{{ usuario.centro_custo or 'N/A' }}</td>
                     <td>{{ usuario.departamento }}</td>
                     
@@ -90,7 +98,7 @@
                         {% endif %}
                     </td>
 
-                    <!-- Acesso a EPIs em texto/link limpo -->
+                    <!-- Acesso a EPIs -->
                     <td>
                         {% if usuario.permissao in ['admin', 'administrador'] %}
                             <span style="color: #475569; font-weight: 500;">Acesso Total</span>
@@ -121,7 +129,7 @@
                             </form>
 
                             <!-- Botão Excluir Usuário -->
-                            {% if (usuario.registro or usuario.username) != session.user.registro %}
+                            {% if (usuario.username or usuario.registro) != session.user.username and (usuario.registro or usuario.username) != session.user.registro %}
                                 <form action="{{ url_for('excluir_usuario') }}" method="post" onsubmit="return confirm('Tem certeza que deseja excluir o usuário {{ usuario.nome }}?');" style="margin: 0;">
                                     <input type="hidden" name="registro_usuario" value="{{ usuario.registro or usuario.username }}">
                                     <button type="submit" class="btn-delete">Excluir</button>
@@ -194,7 +202,6 @@
             background-color: #0369a1;
         }
 
-        /* Botão para alternar status do EPI simples em texto */
         .btn-text-action {
             background: none;
             border: none;
@@ -205,13 +212,8 @@
             text-decoration: underline;
         }
 
-        .text-success {
-            color: #16a34a;
-        }
-
-        .text-muted {
-            color: #64748b;
-        }
+        .text-success { color: #16a34a; }
+        .text-muted { color: #64748b; }
 
         .btn-reset {
             padding: 6px 12px;
@@ -245,6 +247,15 @@
         .btn-delete:hover {
             background-color: #fef2f2;
             border-color: #dc2626;
+        }
+
+        code {
+            background-color: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #0a2540;
+            font-weight: 600;
         }
     </style>
 {% endblock %}

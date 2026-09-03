@@ -34,18 +34,6 @@
         "primeiro_acesso": false
     },
     {
-        "registro": "7431",
-        "username": "7431",
-        "nome": "Lucas Prado",
-        "centro_custo": "BR20_53030",
-        "departamento": "Log\u00edstica",
-        "permissao": "solicitante",
-        "perfil": "solicitante",
-        "pode_solicitar_epi": true,
-        "senha": "scrypt:32768:8:1$Seog4UwsAW1w7xyr$6b40e9bc46177d602ef7ff49b18d56fe79fa4fdb08480157ca94b8006917846e50dac8dd40f065bd2f5d3016cde3d751d22f2bcc0c9683f46e4ab3baf183903d",
-        "primeiro_acesso": false
-    },
-    {
         "registro": "7585",
         "username": "7585",
         "nome": "MAF Porto Real",
@@ -55,6 +43,18 @@
         "perfil": "solicitante",
         "pode_solicitar_epi": true,
         "senha": "scrypt:32768:8:1$1PwSc8E21WdoXOzP$2adae4368147ff81645f4ef7a6b1516c00c6d4e7bb37154792b32ecc616fca29d627c7947622135d37d1af8d8fb1eee4b8250736484a058a170a6dac19017993",
+        "primeiro_acesso": false
+    },
+    {
+        "username": "lucas.prado",
+        "registro": "7431",
+        "nome": "Lucas Prado",
+        "centro_custo": "BR20_53030",
+        "departamento": "Log\u00edstica",
+        "permissao": "admin",
+        "perfil": "admin",
+        "pode_solicitar_epi": true,
+        "senha": "scrypt:32768:8:1$yfBKOyw7TZN84ODL$a50b1b6abdf1a65896ef3a68947526668aebc001ace75605ec7e6e20410d72a832c3095c6e0eb6dfe4da96375b7d1e775873c3fc4c02a80adabb2e77c80669bf",
         "primeiro_acesso": false
     }
 ]

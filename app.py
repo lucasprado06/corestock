@@ -123,13 +123,14 @@ def home():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        registro = request.form.get('registro', '').strip()
+        username = request.form.get('username', '').strip().lower()
         senha = request.form.get('senha', '').strip()
 
         usuarios = carregar_usuarios()
         
+        # Busca o usuário pelo Nome de Usuário (username)
         usuario_encontrado = next(
-            (u for u in usuarios if str(u.get('registro', '')).strip() == registro or str(u.get('username', '')).strip() == registro), 
+            (u for u in usuarios if str(u.get('username', '')).strip().lower() == username or str(u.get('registro', '')).strip().lower() == username), 
             None
         )
 
@@ -144,7 +145,8 @@ def login():
 
             if senha_valida:
                 session['user'] = {
-                    'registro': usuario_encontrado.get('registro') or usuario_encontrado.get('username'),
+                    'username': usuario_encontrado.get('username'),
+                    'registro': usuario_encontrado.get('registro'),
                     'nome': usuario_encontrado.get('nome'),
                     'permissao': usuario_encontrado.get('permissao') or usuario_encontrado.get('perfil'),
                     'departamento': usuario_encontrado.get('departamento', 'Geral')
@@ -159,7 +161,7 @@ def login():
 
                 return redirect(url_for('home'))
 
-        flash('Registro ou senha incorretos. Tente novamente.', 'danger')
+        flash('Usuário ou senha incorretos. Tente novamente.', 'danger')
 
     return render_template('login.html')
 
@@ -297,10 +299,19 @@ def enviar_requisicao():
                 continue
 
             quantidade = int(quantidade)
-            material_encontrado = next((m for m in materiais_disponiveis if m['codigo'] == codigo_material), None)
+
+            # Busca o material considerando o CÓDIGO e a CATEGORIA selecionada
+            material_encontrado = next(
+                (
+                    m for m in materiais_disponiveis 
+                    if str(m['codigo']) == str(codigo_material) 
+                    and m.get('categoria', categoria_solicitacao) == categoria_solicitacao
+                ), 
+                None
+            )
             
             if not material_encontrado:
-                flash(f'Material com código {codigo_material} não encontrado.', 'danger')
+                flash(f'Material com código {codigo_material} não encontrado na categoria selecionada.', 'danger')
                 return redirect(url_for('fazer_requisicao'))
 
             if quantidade > material_encontrado['quantidade_maxima']:
@@ -310,7 +321,9 @@ def enviar_requisicao():
             itens_requisicao.append({
                 'codigo': codigo_material,
                 'nome': material_encontrado['descricao'],
-                'quantidade': quantidade
+                'quantidade': quantidade,
+                'quantidade_solicitada': quantidade,
+                'quantidade_separada': quantidade
             })
 
     if not itens_requisicao:
@@ -323,6 +336,7 @@ def enviar_requisicao():
     nova_requisicao = {
         'id': len(requisicoes) + 1,
         'nome': usuario_logado.get('nome'),
+        'username': usuario_logado.get('username'),
         'registro': usuario_logado.get('registro'),
         'departamento': usuario_logado.get('departamento'),
         'categoria': categoria_solicitacao,
@@ -334,7 +348,7 @@ def enviar_requisicao():
     requisicoes.append(nova_requisicao)
     salvar_requisicoes(requisicoes)
     
-    flash('Sua requisição foi enviada com sucesso e está pendente de aprovação!', 'success')
+    flash('Sua requisição foi enviada com sucesso e está pendente de separação!', 'success')
     return redirect(url_for('fazer_requisicao', categoria=categoria_solicitacao))
 
 @app.route('/pendentes')
@@ -350,21 +364,44 @@ def pendentes():
 @gestor_required
 def concluir_requisicao():
     requisicao_id = int(request.form.get('requisicao_id'))
-    data_retirada = request.form.get('data_retirada')
-    
     requisicoes = carregar_requisicoes()
+    materiais = carregar_materiais()
     requisicao = next((r for r in requisicoes if r['id'] == requisicao_id), None)
     
     if requisicao:
+        for item in requisicao.get('itens', []):
+            codigo_item = str(item.get('codigo', ''))
+            nova_qtd_str = request.form.get(f'qtd_item_{codigo_item}')
+            
+            if 'quantidade_solicitada' not in item:
+                item['quantidade_solicitada'] = item.get('quantidade', 0)
+            
+            if nova_qtd_str is not None:
+                try:
+                    nova_qtd = int(nova_qtd_str)
+                    
+                    # Localiza o cadastro original do material para obter o limite do sistema
+                    mat_cadastrado = next((m for m in materiais if str(m['codigo']) == codigo_item), None)
+                    limite_max = mat_cadastrado['quantidade_maxima'] if mat_cadastrado else 9999
+                    
+                    if nova_qtd > limite_max:
+                        flash(f"A quantidade do item '{item.get('nome')}' não pode ultrapassar o limite cadastrado no sistema ({limite_max}).", 'warning')
+                        return redirect(url_for('ver_requisicao', requisicao_id=requisicao_id))
+                    
+                    item['quantidade_separada'] = max(0, nova_qtd)
+                except ValueError:
+                    pass
+
         requisicao['status'] = 'separado'
-        requisicao['data_retirada'] = data_retirada
+        requisicao['data_retirada'] = datetime.now().strftime('%d/%m/%Y %H:%M')
         requisicao['separado_por'] = session['user'].get('nome', '')
+        
         salvar_requisicoes(requisicoes)
-        flash('Requisição marcada como separada com sucesso!', 'success')
+        flash(f'Requisição #{requisicao_id} separada com sucesso!', 'success')
+        return redirect(url_for('pendentes'))
     else:
         flash('Requisição não encontrada.', 'danger')
-        
-    return redirect(url_for('pendentes'))
+        return redirect(url_for('pendentes'))
 
 @app.route('/separados')
 @login_required
@@ -559,20 +596,21 @@ def exportar_relatorio_excel():
             for item in itens:
                 linhas_relatorio.append({
                     'ID Requisição': req.get('id'),
-                    'Data Solicitação': req.get('data'),
-                    'Status': status_traduzido,
-                    'Tipo/Categoria': categoria_traduzida,
-                    'Nota Fiscal': req.get('nota_fiscal', '-'),
-                    'Solicitante': req.get('nome'),
-                    'Registro': req.get('registro'),
-                    'Departamento': req.get('departamento'),
-                    'Código Material': item.get('codigo', '-'),
-                    'Descrição Material': item.get('nome') or item.get('descricao', '-'),
-                    'Quantidade': item.get('quantidade', 0),
-                    'Separado Por': req.get('separado_por', '-'),
-                    'Finalizado Por': req.get('finalizado_por', '-'),
-                    'Data Conclusão/Retirada': req.get('data_conclusao') or req.get('data_retirada') or '-'
-                })
+    'Data Solicitação': req.get('data'),
+    'Status': status_traduzido,
+    'Tipo/Categoria': categoria_traduzida,
+    'Nota Fiscal': req.get('nota_fiscal', '-'),
+    'Solicitante': req.get('nome'),
+    'Registro': req.get('registro'),
+    'Departamento': req.get('departamento'),
+    'Código Material': item.get('codigo', '-'),
+    'Descrição Material': item.get('nome') or item.get('descricao', '-'),
+    'Qtd Solicitada': item.get('quantidade_solicitada', item.get('quantidade', 0)),
+    'Qtd Separada': item.get('quantidade_separada', item.get('quantidade', 0)),
+    'Separado Por': req.get('separado_por', '-'),
+    'Finalizado Por': req.get('finalizado_por', '-'),
+    'Data Conclusão/Retirada': req.get('data_conclusao') or req.get('data_retirada') or '-'
+})
         else:
             # Caso a requisição não possua itens especificados
             linhas_relatorio.append({
@@ -586,7 +624,8 @@ def exportar_relatorio_excel():
                 'Departamento': req.get('departamento'),
                 'Código Material': '-',
                 'Descrição Material': 'Sem itens registrados',
-                'Quantidade': 0,
+                'Qtd Solicitada': 0,
+                'Qtd Separada': 0,
                 'Separado Por': req.get('separado_por', '-'),
                 'Finalizado Por': req.get('finalizado_por', '-'),
                 'Data Conclusão/Retirada': req.get('data_conclusao') or req.get('data_retirada') or '-'
@@ -628,7 +667,7 @@ def gerenciar_usuarios():
             departamentos.append({'nome': str(d)})
     
     if request.method == 'POST':
-        # Se for edição rápida de permissão de EPI
+        # Edição rápida de permissão de EPI
         if 'acao_editar_epi' in request.form:
             reg_target = str(request.form.get('registro_target')).strip()
             status_epi = request.form.get('pode_solicitar_epi') == 'true'
@@ -643,21 +682,25 @@ def gerenciar_usuarios():
             flash('Permissão de EPI atualizada com sucesso!', 'success')
             return redirect(url_for('gerenciar_usuarios'))
 
-        # Cadastro de Novo Usuário
-        registro = str(request.form.get('registro')).strip()
-        nome = request.form.get('nome').strip()
-        centro_custo = request.form.get('centro_custo').strip()
+        # Cadastro de Novo Usuário (Nome de Usuário + Registro)
+        username = str(request.form.get('username', '')).strip().lower()
+        registro = str(request.form.get('registro', '')).strip()
+        nome = request.form.get('nome', '').strip()
+        centro_custo = request.form.get('centro_custo', '').strip()
         departamento = request.form.get('departamento')
         permissao = request.form.get('permissao')
-        pode_solicitar_epi = 'pode_solicitar_epi' in request.form  # Checkbox marcada = True
+        pode_solicitar_epi = 'pode_solicitar_epi' in request.form
         senha_inicial = "Mudar123@"
 
-        if any(str(u.get('registro') or u.get('username', '')).strip() == registro for u in usuarios):
-            flash('Usuário com este registro já cadastrado!', 'danger')
+        # Verifica se já existe um usuário com este username ou registro
+        if any(str(u.get('username', '')).strip().lower() == username for u in usuarios):
+            flash('Nome de usuário já cadastrado! Escolha outro.', 'danger')
+        elif any(str(u.get('registro', '')).strip() == registro for u in usuarios):
+            flash('Registro (ID) já cadastrado!', 'danger')
         else:
             usuarios.append({
+                "username": username,
                 "registro": registro,
-                "username": registro,
                 "nome": nome,
                 "centro_custo": centro_custo,
                 "departamento": departamento,
@@ -668,7 +711,7 @@ def gerenciar_usuarios():
                 "primeiro_acesso": True
             })
             salvar_usuarios(usuarios)
-            flash(f'Usuário {nome} criado com sucesso!', 'success')
+            flash(f'Usuário {nome} (@{username}) criado com sucesso!', 'success')
             return redirect(url_for('gerenciar_usuarios'))
 
     return render_template('gerenciar_usuarios.html', usuarios=usuarios, departamentos=departamentos)

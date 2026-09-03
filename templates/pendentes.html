@@ -3,64 +3,52 @@
 {% block title %}Requisições Pendentes - CoreStock{% endblock %}
 
 {% block content %}
-    <h1>Requisições Pendentes</h1>
+    <h1 style="text-align: center; color: #0a2540; margin-bottom: 25px;">Requisições Pendentes</h1>
     
-    <table class="table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Data da Requisição</th>
-                <th>Solicitante</th>
-                <th>Departamento</th>
-                <th>Tipo</th>
-                <th>Detalhes</th>
-                <th>Ações de Separação</th>
-                <th>Imprimir</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for requisicao in requisicoes %}
-            <tr id="requisicao-{{ requisicao.id }}">
-                <td>{{ requisicao.id }}</td>
-                <td>{{ requisicao.data }}</td>
-                <td>{{ requisicao.nome }}</td>
-                <td>{{ requisicao.departamento }}</td>
-                
-                <!-- Coluna de Tipo (EPI ou Escritório) -->
-                <td>
-                    {% if requisicao.categoria == 'epi' %}
-                        <span style="background-color: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 12px; display: inline-block;">🛡️ EPI</span>
-                    {% else %}
-                        <span style="background-color: #cce5ff; color: #004085; padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 12px; display: inline-block;">📄 Escritório</span>
-                    {% endif %}
-                </td>
+    <div id="conteudoTabela">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Data da Requisição</th>
+                    <th>Solicitante</th>
+                    <th>Departamento</th>
+                    <th>Tipo</th>
+                    <th style="text-align: center;">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for requisicao in requisicoes %}
+                <tr id="requisicao-{{ requisicao.id }}">
+                    <td><strong>#{{ requisicao.id }}</strong></td>
+                    <td>{{ requisicao.data }}</td>
+                    <td>{{ requisicao.nome }}</td>
+                    <td>{{ requisicao.departamento }}</td>
+                    
+                    <td style="font-weight: 500; color: #334155;">
+                        {% if requisicao.categoria == 'epi' %}
+                            EPI
+                        {% else %}
+                            Escritório
+                        {% endif %}
+                    </td>
 
-                <td>
-                    <!-- Botão para abrir a tela com os itens detalhados -->
-                    <a href="{{ url_for('ver_requisicao', requisicao_id=requisicao.id) }}" class="btn btn-info btn-sm">Visualizar Itens</a>
-                </td>
-
-                <td class="no-print">
-                    <form action="{{ url_for('concluir_requisicao') }}" method="post">
-                        <input type="hidden" name="requisicao_id" value="{{ requisicao.id }}">
-                        <div class="form-actions-column">
-                            <input type="date" name="data_retirada" required>
-                            <button type="submit" class="btn btn-success btn-sm">Marcar como Separado</button>
+                    <td style="text-align: center;">
+                        <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
+                            <a href="{{ url_for('ver_requisicao', requisicao_id=requisicao.id) }}" class="btn-separar">
+                                📦 Iniciar Separação
+                            </a>
                         </div>
-                    </form>
-                </td>
-
-                <td class="no-print">
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="imprimirRequisicao('{{ requisicao.id }}')">Imprimir</button>
-                </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="8" style="text-align: center;">Nenhuma requisição pendente no momento.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: #64748b;">Nenhuma requisição pendente no momento.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     
     <style>
         .table {
@@ -68,56 +56,64 @@
             border-collapse: collapse;
             margin-top: 20px;
         }
+
         .table th, .table td {
-            border: 1px solid #ddd;
+            border: 1px solid #cbd5e1;
             padding: 12px;
             text-align: left;
             vertical-align: middle;
         }
+
         .table th {
-            background-color: #f2f2f2;
-            font-weight: bold;
+            background-color: #0a2540;
+            color: #ffffff;
+            font-weight: 600;
         }
+
         .table tbody tr:nth-child(even) {
-            background-color: #f9f9f9;
+            background-color: #f8fafc;
         }
+
         .table tbody tr:hover {
-            background-color: #e9e9e9;
+            background-color: #f1f5f9;
         }
-        .form-actions-column {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        .form-actions-column input[type="date"] {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        .btn {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+
+        .btn-separar {
+            background-color: #0284c7;
             color: white;
-            font-size: 14px;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
             text-decoration: none;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background-color 0.2s;
         }
-        .btn-success { background-color: #28a745; }
-        .btn-info { background-color: #17a2b8; }
-        .btn-secondary { background-color: #6c757d; }
-        .btn-sm {
-            padding: 5px 10px;
-            font-size: 12px;
+
+        .btn-separar:hover {
+            background-color: #0369a1;
+            color: white;
         }
     </style>
 
+    <!-- Script de Atualização Invisível em Segundo Plano (30 segundos) -->
     <script>
-        function imprimirRequisicao(requisicaoId) {
-            window.location.href = `/requisicao/${requisicaoId}`;
-        }
+        setInterval(() => {
+            fetch(window.location.href)
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const novaTabela = doc.getElementById('conteudoTabela');
+                    const tabelaAtual = document.getElementById('conteudoTabela');
+
+                    if (novaTabela && tabelaAtual) {
+                        tabelaAtual.innerHTML = novaTabela.innerHTML;
+                    }
+                })
+                .catch(err => console.error('Erro na atualização em segundo plano:', err));
+        }, 30000); // 30000 ms = 30 segundos
     </script>
 {% endblock %}

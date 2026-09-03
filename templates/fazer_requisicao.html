@@ -40,7 +40,7 @@
                 <select name="materiais[0][codigo]" required class="input-select">
                     <option value="" disabled selected>Selecione o material</option>
                     {% for m in materiais %}
-                        <option value="{{ m.codigo }}">{{ m.descricao }} (Máx: {{ m.quantidade_maxima }})</option>
+                        <option value="{{ m.codigo }}">{{ m.descricao }}</option>
                     {% endfor %}
                 </select>
 
@@ -221,7 +221,7 @@
                 <select name="materiais[${itemIndex}][codigo]" required class="input-select">
                     <option value="" disabled selected>Selecione o material</option>
                     {% for m in materiais %}
-                        <option value="{{ m.codigo }}">{{ m.descricao }} (Máx: {{ m.quantidade_maxima }})</option>
+                        <option value="{{ m.codigo }}">{{ m.descricao }}</option>
                     {% endfor %}
                 </select>
 
