@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+
+{% block title %}Movimentar Estoque - CoreStock{% endblock %}
+
+{% block content %}
+    <div style="max-width: 700px; margin: 20px auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1 style="color: #0a2540; margin: 0; font-size: 1.8em;">🔄 Movimentação de Estoque</h1>
+            <a href="{{ url_for('ver_estoque') }}" class="btn-back">← Voltar ao Estoque</a>
+        </div>
+
+        <div class="form-card">
+            <form action="{{ url_for('movimentar_estoque') }}" method="POST" id="formMovimentacao">
+                
+                <!-- 1. Seleção do Material Pré-cadastrado -->
+                <div class="form-group">
+                    <label for="codigo_material">Selecione o Material (Pré-cadastrado): *</label>
+                    <select name="codigo_material" id="codigo_material" required class="form-input" onchange="atualizarInfoMaterial()">
+                        <option value="" disabled selected>-- Escolha um item do cadastro --</option>
+                        {% for m in materiais %}
+                            <option value="{{ m.codigo }}" data-saldo="{{ m.saldo if m.saldo is defined else 0 }}" data-categoria="{{ m.categoria or 'escritorio' }}">
+                                [{{ m.codigo }}] {{ m.descricao }} (Saldo Atual: {{ m.saldo if m.saldo is defined else 0 }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Painel Informativo do Saldo Atual -->
+                <div id="painelSaldo" class="saldo-info-panel" style="display: none;">
+                    <span>Saldo em Estoque do Item Selecionado:</span>
+                    <strong id="saldoAtualTexto">0 un.</strong>
+                </div>
+
+                <!-- 2. Tipo de Movimentação -->
+                <div class="form-group">
+                    <label for="tipo_movimentacao">Tipo de Movimentação: *</label>
+                    <select name="tipo_movimentacao" id="tipo_movimentacao" required class="form-input" onchange="alternarCamposEntradaSaida()">
+                        <option value="" disabled selected>-- Selecione o tipo --</option>
+                        <optgroup label="📥 Entradas de Estoque">
+                            <option value="entrada_nf">Entrada por Nota Fiscal (NF)</option>
+                            <option value="entrada_manual">Entrada Manual / Ajuste de Inventário</option>
+                        </optgroup>
+                        <optgroup label="📤 Saídas de Estoque">
+                            <option value="saida_nf">Saída por Nota Fiscal (Devolução/Transferência)</option>
+                            <option value="saida_manual">Saída Manual / Ajuste / Perda / Avaria</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <!-- 3. Quantidade da Movimentação -->
+                <div class="form-group">
+                    <label for="quantidade">Quantidade a Movimentar: *</label>
+                    <input type="number" name="quantidade" id="quantidade" min="1" required class="form-input" placeholder="Ex: 10">
+                </div>
+
+                <!-- 4. Número da Nota Fiscal (Exibido dinamicamente se for Entrada/Saída por NF) -->
+                <div class="form-group" id="groupNF" style="display: none;">
+                    <label for="nota_fiscal">Número da Nota Fiscal: *</label>
+                    <input type="text" name="nota_fiscal" id="nota_fiscal" class="form-input" placeholder="Ex: NF-123456" autocomplete="off">
+                </div>
+
+                <!-- 5. Motivo / Observação da Movimentação -->
+                <div class="form-group">
+                    <label for="motivo">Motivo / Observação da Movimentação: *</label>
+                    <textarea name="motivo" id="motivo" rows="3" required class="form-input" placeholder="Descreva o motivo (Ex: Compra quinzenal, ajuste de contagem de inventário, avaria na caixa, etc.)"></textarea>
+                </div>
+
+                <!-- Botão de Confirmação -->
+                <div style="margin-top: 25px;">
+                    <button type="submit" class="btn-submit-mov" id="btnSubmit">
+                        💾 Confirmar Movimentação
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        .btn-back {
+            background-color: #f1f5f9;
+            color: #334155;
+            padding: 8px 14px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 13px;
+            border: 1px solid #cbd5e1;
+            transition: background 0.2s;
+        }
+
+        .btn-back:hover {
+            background-color: #e2e8f0;
+        }
+
+        .form-card {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 14px;
+            color: #334155;
+            margin-bottom: 6px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            background: #ffffff;
+            color: #0a2540;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus {
+            border-color: #0284c7;
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+        }
+
+        .saldo-info-panel {
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #0369a1;
+            font-size: 14px;
+        }
+
+        .saldo-info-panel strong {
+            font-size: 18px;
+            color: #0284c7;
+        }
+
+        .btn-submit-mov {
+            width: 100%;
+            padding: 12px;
+            background-color: #16a34a;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-submit-mov:hover {
+            background-color: #15803d;
+        }
+    </style>
+
+    <script>
+        function atualizarInfoMaterial() {
+            const select = document.getElementById('codigo_material');
+            const optionSelecionada = select.options[select.selectedIndex];
+            const painel = document.getElementById('painelSaldo');
+            const saldoTexto = document.getElementById('saldoAtualTexto');
+
+            if (optionSelecionada && optionSelecionada.value) {
+                const saldo = optionSelecionada.getAttribute('data-saldo') || '0';
+                saldoTexto.textContent = `${saldo} un.`;
+                painel.style.display = 'flex';
+            } else {
+                painel.style.display = 'none';
+            }
+        }
+
+        function alternarCamposEntradaSaida() {
+            const tipo = document.getElementById('tipo_movimentacao').value;
+            const groupNF = document.getElementById('groupNF');
+            const inputNF = document.getElementById('nota_fiscal');
+            const btnSubmit = document.getElementById('btnSubmit');
+
+            if (tipo === 'entrada_nf' || tipo === 'saida_nf') {
+                groupNF.style.display = 'block';
+                inputNF.required = true;
+            } else {
+                groupNF.style.display = 'none';
+                inputNF.required = false;
+                inputNF.value = '';
+            }
+
+            // Altera visual do botão conforme Entrada vs Saída
+            if (tipo.startsWith('saida')) {
+                btnSubmit.style.backgroundColor = '#dc2626';
+                btnSubmit.textContent = '📤 Confirmar Saída de Estoque';
+            } else {
+                btnSubmit.style.backgroundColor = '#16a34a';
+                btnSubmit.textContent = '📥 Confirmar Entrada de Estoque';
+            }
+        }
+
+        // Validação no envio para proibir saídas sem saldo suficiente
+        document.getElementById('formMovimentacao').addEventListener('submit', function(e) {
+            const selectMat = document.getElementById('codigo_material');
+            const option = selectMat.options[selectMat.selectedIndex];
+            const saldoAtual = parseInt(option.getAttribute('data-saldo')) || 0;
+            const tipo = document.getElementById('tipo_movimentacao').value;
+            const qtdInput = parseInt(document.getElementById('quantidade').value) || 0;
+
+            if (tipo.startsWith('saida') && qtdInput > saldoAtual) {
+                e.preventDefault();
+                alert(`⚠️ Operação Não Permitida:\n\nA quantidade de saída (${qtdInput} un.) é maior do que o saldo em estoque (${saldoAtual} un.).`);
+            }
+        });
+    </script>
+{% endblock %}

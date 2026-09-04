@@ -12,7 +12,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* Plano de Fundo com o mesmo Gradiente da Tela de Login */
+        /* Plano de Fundo com Gradiente */
         body {
             min-height: 100vh;
             background: linear-gradient(135deg, #0a2540 0%, #1e3c72 50%, #0052d4 100%);
@@ -51,7 +51,7 @@
             z-index: 0;
         }
 
-        /* Container Principal Elevado com Leve Transparência (Glassmorphism Suave) */
+        /* Container Principal Elevado */
         .container {
             max-width: 1200px;
             width: 100%;
@@ -191,7 +191,7 @@
             border: 1px solid #ffecb5;
         }
 
-        /* Estilização das Tabelas com Alto Contraste */
+        /* Estilização das Tabelas */
         .table {
             width: 100%;
             border-collapse: collapse;
@@ -277,13 +277,37 @@
                     </a>
                 {% endif %}
 
-                <!-- 4. Histórico de Requisições (Todos) -->
+                <!-- 4. Posição de Estoque (Abastecedor e Admin) -->
+                {% if permissao in ['administrador', 'admin', 'abastecedor'] %}
+                    <a href="{{ url_for('ver_estoque') }}" 
+                       class="nav-link {% if request.endpoint == 'ver_estoque' %}active{% endif %}">
+                         Posição de Estoque
+                    </a>
+                {% endif %}
+
+                <!-- 5. Movimentar Estoque - Entrada/Saída (Abastecedor e Admin) -->
+                {% if permissao in ['administrador', 'admin', 'abastecedor'] %}
+                    <a href="{{ url_for('movimentar_estoque') }}" 
+                       class="nav-link {% if request.endpoint == 'movimentar_estoque' %}active{% endif %}">
+                         Movimentar Estoque
+                    </a>
+                {% endif %}
+
+                <!-- 6. Histórico de Movimentações de Estoque (Abastecedor e Admin) -->
+                {% if permissao in ['administrador', 'admin', 'abastecedor'] %}
+                    <a href="{{ url_for('historico_movimentacoes') }}" 
+                       class="nav-link {% if request.endpoint == 'historico_movimentacoes' %}active{% endif %}">
+                         Histórico de Estoque
+                    </a>
+                {% endif %}
+
+                <!-- 7. Histórico de Requisições (Todos) -->
                 <a href="{{ url_for('historico') }}" 
                    class="nav-link {% if request.endpoint in ['historico', 'ver_requisicao'] %}active{% endif %}">
-                    Histórico
+                    Histórico Requisições
                 </a>
 
-                <!-- 5. Gerenciar Materiais Escritório (Abastecedor e Admin) -->
+                <!-- 8. Gerenciar Materiais Escritório (Abastecedor e Admin) -->
                 {% if permissao in ['administrador', 'admin', 'abastecedor'] %}
                     <a href="{{ url_for('gerenciar_materiais_escritorio') }}" 
                        class="nav-link {% if request.endpoint == 'gerenciar_materiais_escritorio' %}active{% endif %}">
@@ -291,7 +315,7 @@
                     </a>
                 {% endif %}
 
-                <!-- 6. Gerenciar Materiais EPI (Abastecedor e Admin) -->
+                <!-- 9. Gerenciar Materiais EPI (Abastecedor e Admin) -->
                 {% if permissao in ['administrador', 'admin', 'abastecedor'] %}
                     <a href="{{ url_for('gerenciar_materiais_epi') }}" 
                        class="nav-link {% if request.endpoint == 'gerenciar_materiais_epi' %}active{% endif %}">
@@ -299,7 +323,7 @@
                     </a>
                 {% endif %}
 
-                <!-- 7. Gerenciar Usuários (Apenas Admin) -->
+                <!-- 10. Gerenciar Usuários (Apenas Admin) -->
                 {% if permissao in ['administrador', 'admin'] %}
                     <a href="{{ url_for('gerenciar_usuarios') }}" 
                        class="nav-link {% if request.endpoint == 'gerenciar_usuarios' %}active{% endif %}">
@@ -307,7 +331,7 @@
                     </a>
                 {% endif %}
 
-                <!-- 8. Gerenciar Departamentos (Apenas Admin) -->
+                <!-- 11. Gerenciar Departamentos (Apenas Admin) -->
                 {% if permissao in ['administrador', 'admin'] %}
                     <a href="{{ url_for('gerenciar_departamentos') }}" 
                        class="nav-link {% if request.endpoint == 'gerenciar_departamentos' %}active{% endif %}">
@@ -315,7 +339,7 @@
                     </a>
                 {% endif %}
 
-                <!-- 9. Trocar Senha (Todos) -->
+                <!-- 12. Trocar Senha (Todos) -->
                 <a href="{{ url_for('trocar_senha') }}" 
                    class="nav-link {% if request.endpoint == 'trocar_senha' %}active{% endif %}">
                     Trocar Senha

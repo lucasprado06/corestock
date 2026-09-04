@@ -1,0 +1,395 @@
+{% extends 'base.html' %}
+
+{% block title %}Posição de Estoque - CoreStock{% endblock %}
+
+{% block content %}
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+        <h1 style="color: #0a2540; margin: 0;">Posição de Estoque</h1>
+        
+        {% if session.user.permissao in ['administrador', 'admin', 'abastecedor'] %}
+        <div style="display: flex; gap: 10px;">
+            <a href="{{ url_for('movimentar_estoque') }}" class="btn-primary-action">
+                🔄 Movimentar Estoque (Entrada/Saída)
+            </a>
+            <a href="{{ url_for('historico_movimentacoes') }}" class="btn-secondary-action">
+                📋 Histórico de Movimentações
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Cards Informativos de Resumo -->
+    <div class="summary-cards">
+        <div class="card-summary card-blue">
+            <span class="card-title">Total de Itens</span>
+            <span class="card-value" id="totalItensCard">0</span>
+        </div>
+        <div class="card-summary card-green">
+            <span class="card-title">Saldo Total em Estoque</span>
+            <span class="card-value"><span id="totalSaldoCard">0</span> <small>un.</small></span>
+        </div>
+        <div class="card-summary card-yellow">
+            <span class="card-title">Estoque Baixo (≤ Mínimo)</span>
+            <span class="card-value" id="baixosCard">0</span>
+        </div>
+        <div class="card-summary card-red">
+            <span class="card-title">Itens Zerados</span>
+            <span class="card-value" id="zeradosCard">0</span>
+        </div>
+    </div>
+
+    <!-- Filtros e Busca Instantânea -->
+    <div class="filter-bar">
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="inputBuscaEstoque" onkeyup="filtrarEstoque()" placeholder="Buscar por Part Number (Código) ou Descrição..." autocomplete="off">
+        </div>
+
+        <div class="category-filter">
+            <button class="filter-btn active" onclick="filtrarCategoria('todas', this)">Todas</button>
+            <button class="filter-btn" onclick="filtrarCategoria('escritorio', this)">Escritório</button>
+            <button class="filter-btn" onclick="filtrarCategoria('epi', this)">EPI</button>
+        </div>
+    </div>
+
+    <!-- Tabela de Posição de Estoque -->
+    <table class="table-estoque" id="tabelaEstoque">
+        <thead>
+            <tr>
+                <th style="width: 140px;">Part Number</th>
+                <th>Descrição do Material</th>
+                <th style="width: 140px; text-align: center;">Categoria</th>
+                <th style="width: 130px; text-align: center;">Estoque Mín.</th>
+                <th style="width: 140px; text-align: center;">Saldo em Estoque</th>
+                <th style="width: 140px; text-align: center;">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in materiais %}
+            {% set saldo = item.saldo if item.saldo is defined else 0 %}
+            {% set est_min = item.estoque_minimo if item.estoque_minimo is defined else 0 %}
+            <tr data-categoria="{{ item.categoria or 'escritorio' }}" 
+                data-saldo="{{ saldo }}" 
+                data-estmin="{{ est_min }}" 
+                class="linha-material {% if saldo == 0 %}row-zerado{% elif saldo <= est_min %}row-baixo{% endif %}">
+                <td><code>{{ item.codigo }}</code></td>
+                <td><strong>{{ item.descricao }}</strong></td>
+                <td style="text-align: center;">
+                    <span class="text-cat text-cat-{{ item.categoria or 'escritorio' }}">
+                        {% if item.categoria == 'epi' %}EPI{% else %}ESCRITÓRIO{% endif %}
+                    </span>
+                </td>
+                <td style="text-align: center; color: #64748b; font-weight: 600;">
+                    {{ est_min }}
+                </td>
+                <td style="text-align: center;">
+                    <span class="saldo-text {% if saldo == 0 %}saldo-zero{% elif saldo <= est_min %}saldo-baixo{% else %}saldo-ok{% endif %}">
+                        {{ saldo }}
+                    </span>
+                </td>
+                <td style="text-align: center;">
+                    {% if saldo == 0 %}
+                        <span class="status-text text-red">SEM ESTOQUE</span>
+                    {% elif saldo <= est_min %}
+                        <span class="status-text text-yellow">ESTOQUE BAIXO</span>
+                    {% else %}
+                        <span class="status-text text-green">NORMAL</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" style="text-align: center; color: #64748b; padding: 20px;">
+                    Nenhum material cadastrado no sistema.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p id="msgSemEstoque" style="display: none; text-align: center; color: #64748b; margin-top: 25px; font-weight: 500;">
+        Nenhum item encontrado com os critérios de busca.
+    </p>
+
+    <style>
+        .btn-primary-action {
+            background-color: #0284c7;
+            color: #ffffff;
+            padding: 9px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .btn-primary-action:hover {
+            background-color: #0369a1;
+        }
+
+        .btn-secondary-action {
+            background-color: #f1f5f9;
+            color: #334155;
+            padding: 9px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            border: 1px solid #cbd5e1;
+            transition: background 0.2s;
+        }
+
+        .btn-secondary-action:hover {
+            background-color: #e2e8f0;
+        }
+
+        /* Summary Cards Grid */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 25px;
+        }
+
+        .card-summary {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .card-summary .card-title {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .card-summary .card-value {
+            font-size: 26px;
+            font-weight: 800;
+            color: #0a2540;
+        }
+
+        .card-summary .card-value small {
+            font-size: 14px;
+            font-weight: 500;
+            color: #64748b;
+        }
+
+        .card-blue { border-left: 4px solid #0284c7; }
+        .card-green { border-left: 4px solid #16a34a; }
+        .card-yellow { border-left: 4px solid #eab308; }
+        .card-red { border-left: 4px solid #dc2626; }
+
+        /* Filter & Search Bar */
+        .filter-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 12px 10px 38px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            background: #ffffff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-box input:focus {
+            border-color: #0284c7;
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+        }
+
+        .category-filter {
+            display: flex;
+            gap: 8px;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+        }
+
+        .filter-btn {
+            background: transparent;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active {
+            background: #ffffff;
+            color: #0a2540;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Table Styling */
+        .table-estoque {
+            width: 100%;
+            border-collapse: collapse;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+
+        .table-estoque th {
+            background-color: #0a2540;
+            color: #ffffff;
+            padding: 12px;
+            font-size: 13px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .table-estoque td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+            color: #1e293b;
+        }
+
+        .table-estoque tbody tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        .row-zerado { background-color: #fff5f5 !important; }
+        .row-baixo { background-color: #fefce8 !important; }
+
+        code {
+            background: #f1f5f9;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-weight: 700;
+            color: #0a2540;
+        }
+
+        /* Estilização por texto puro colorido (Sem fundo e sem emoji) */
+        .text-cat {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .text-cat-escritorio { color: #0284c7; }
+        .text-cat-epi { color: #d97706; }
+
+        .saldo-text {
+            font-size: 15px;
+            font-weight: 800;
+        }
+        .saldo-ok { color: #16a34a; }
+        .saldo-baixo { color: #ca8a04; }
+        .saldo-zero { color: #dc2626; }
+
+        .status-text {
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+        .text-green { color: #16a34a; }
+        .text-yellow { color: #ca8a04; }
+        .text-red { color: #dc2626; }
+    </style>
+
+    <script>
+        let categoriaAtiva = 'todas';
+
+        function filtrarCategoria(cat, btn) {
+            categoriaAtiva = cat;
+            
+            // Atualiza estado dos botões de aba
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            filtrarEstoque();
+        }
+
+        function filtrarEstoque() {
+            const input = document.getElementById('inputBuscaEstoque');
+            const termo = input ? input.value.toLowerCase().trim() : '';
+            const linhas = document.querySelectorAll('#tabelaEstoque tbody tr.linha-material');
+            const msgSemEstoque = document.getElementById('msgSemEstoque');
+
+            let totalItens = 0;
+            let totalSaldo = 0;
+            let baixos = 0;
+            let zerados = 0;
+            let visiveis = 0;
+
+            linhas.forEach(linha => {
+                const categoriaLinha = linha.getAttribute('data-categoria') || 'escritorio';
+                const saldo = parseInt(linha.getAttribute('data-saldo') || '0', 10);
+                const estMin = parseInt(linha.getAttribute('data-estmin') || '0', 10);
+                const textoLinha = linha.textContent.toLowerCase();
+
+                const bateCategoria = (categoriaAtiva === 'todas' || categoriaLinha === categoriaAtiva);
+                const bateTexto = (termo === '' || textoLinha.indexOf(termo) > -1);
+
+                if (bateCategoria && bateTexto) {
+                    linha.style.display = '';
+                    visiveis++;
+
+                    // Acumula métricas somente para as linhas visíveis
+                    totalItens++;
+                    totalSaldo += saldo;
+
+                    if (saldo === 0) {
+                        zerados++;
+                    } else if (saldo <= estMin) {
+                        baixos++;
+                    }
+                } else {
+                    linha.style.display = 'none';
+                }
+            });
+
+            // Atualiza os valores nos cards do topo
+            document.getElementById('totalItensCard').innerText = totalItens;
+            document.getElementById('totalSaldoCard').innerText = totalSaldo;
+            document.getElementById('baixosCard').innerText = baixos;
+            document.getElementById('zeradosCard').innerText = zerados;
+
+            // Exibe mensagem quando nenhum item bate com os filtros
+            if (msgSemEstoque) {
+                msgSemEstoque.style.display = (visiveis === 0 && linhas.length > 0) ? 'block' : 'none';
+            }
+        }
+
+        // Executa a contagem inicial assim que a página carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            filtrarEstoque();
+        });
+    </script>
+{% endblock %}

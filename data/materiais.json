@@ -3,13 +3,16 @@
         "codigo": "564651",
         "descricao": "Protetor",
         "quantidade_maxima": 23,
-        "categoria": "epi"
+        "categoria": "epi",
+        "saldo": 6,
+        "estoque_minimo": 23
     },
     {
         "codigo": "2001",
         "descricao": "Capacete de Seguranca Classe B Aba Frontal",
         "quantidade_maxima": 5,
-        "categoria": "epi"
+        "categoria": "epi",
+        "estoque_minimo": 5
     },
     {
         "codigo": "2002",
@@ -93,7 +96,8 @@
         "codigo": "2015",
         "descricao": "Avental de Raspa de Couro para Soldador",
         "quantidade_maxima": 3,
-        "categoria": "epi"
+        "categoria": "epi",
+        "saldo": 0
     },
     {
         "codigo": "2016",
@@ -105,7 +109,8 @@
         "codigo": "2017",
         "descricao": "Colete Refletivo de Alta Visibilidade Tam G",
         "quantidade_maxima": 8,
-        "categoria": "epi"
+        "categoria": "epi",
+        "saldo": 0
     },
     {
         "codigo": "2018",
@@ -123,19 +128,23 @@
         "codigo": "25154",
         "descricao": "caneta",
         "quantidade_maxima": 20,
-        "categoria": "escritorio"
+        "categoria": "escritorio",
+        "saldo": 2,
+        "estoque_minimo": 20
     },
     {
         "codigo": "2019",
         "descricao": "Manga de Protecao em Raspa para Braco",
         "quantidade_maxima": 6,
-        "categoria": "escritorio"
+        "categoria": "escritorio",
+        "saldo": 0
     },
     {
         "codigo": "12095-050",
         "descricao": "luvex",
         "quantidade_maxima": 2,
-        "categoria": "epi"
+        "categoria": "epi",
+        "saldo": 0
     },
     {
         "codigo": "12095-050",

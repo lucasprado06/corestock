@@ -33,10 +33,9 @@
                 <span>{{ requisicao.data }}</span>
             </div>
 
-            <!-- Campo de Nota Fiscal padronizado -->
             <div class="info-item">
                 <strong>Nota Fiscal de Transferência:</strong>
-                <span>{{ requisicao.nota_fiscal or 'Não informada / Não aplicável' }}</span>
+                <span>{{ requisicao.nota_fiscal or requisicao.nota_fiscal_transferencia or 'Não informada / Não aplicável' }}</span>
             </div>
 
             {% if requisicao.data_retirada %}
@@ -55,7 +54,7 @@
 
             {% if requisicao.finalizado_por %}
             <div class="info-item">
-                <strong>Finalizado por:</strong>
+                <strong>Despachado / Concluído por:</strong>
                 <span>{{ requisicao.finalizado_por }}</span>
             </div>
             {% endif %}
@@ -68,11 +67,34 @@
             {% endif %}
         </div>
 
-        <h3 class="section-title">Itens Solicitados</h3>
+        {% set depto_lower = (requisicao.departamento or '') | lower %}
+        {% set eh_maf = 'maf porto real' in depto_lower or 'maf betim' in depto_lower %}
 
-        <!-- Formulário de Separação e Ajuste de Itens -->
+        <!-- Formulário da Separação e Despacho -->
         <form action="{{ url_for('concluir_requisicao') }}" method="POST" id="formSeparacao">
             <input type="hidden" name="requisicao_id" value="{{ requisicao.id }}">
+            <input type="hidden" name="acao_final" id="acao_final" value="{% if eh_maf and requisicao.status == 'pendente' %}concluir_direto{% elif requisicao.status == 'pendente' %}separar{% else %}concluir{% endif %}">
+
+            <!-- Campo de Nota Fiscal Obrigatório APENAS para MAF Porto Real e MAF Betim em aberto -->
+            {% if (requisicao.status == 'pendente' or requisicao.status == 'separado') and session.user.permissao in ['admin', 'administrador', 'abastecedor'] and eh_maf %}
+            <div style="background-color: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 16px; margin-bottom: 20px;" class="no-print">
+                <label for="nota_fiscal" style="font-weight: 700; color: #0369a1; display: block; margin-bottom: 6px; font-size: 14px;">
+                    📄 Número da Nota Fiscal (Transferência/Saída) <span style="color: #dc2626;">*</span>:
+                </label>
+                <input type="text" 
+                       name="nota_fiscal" 
+                       id="nota_fiscal" 
+                       value="{{ requisicao.nota_fiscal or requisicao.nota_fiscal_transferencia or '' }}" 
+                       placeholder="Ex: NF-125874" 
+                       required
+                       style="padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; max-width: 320px; font-size: 14px; font-weight: 600; color: #0a2540;">
+                <small style="display: block; color: #0369a1; margin-top: 6px; font-size: 12px;">
+                    ⚠️ Campo obrigatório para solicitações do departamento <strong>{{ requisicao.departamento }}</strong>.
+                </small>
+            </div>
+            {% endif %}
+
+            <h3 class="section-title">Itens Solicitados</h3>
 
             <table class="table-detalhes">
                 <thead>
@@ -99,12 +121,10 @@
                             {% endif %}
                         </td>
                         
-                        <!-- Coluna Solicitado (Fixa) -->
                         <td style="text-align: center;">
                             <strong style="color: #475569;">{{ qtd_sol }}</strong>
                         </td>
 
-                        <!-- Coluna Separado (Editável diretamente por número) -->
                         <td style="text-align: center;">
                             {% if requisicao.status == 'pendente' and session.user.permissao in ['admin', 'administrador', 'abastecedor'] %}
                                 <input type="number" 
@@ -112,7 +132,6 @@
                                        name="qtd_item_{{ item.codigo }}" 
                                        value="{{ qtd_sep }}" 
                                        min="0" 
-                                       max="{{ qtd_sol }}"
                                        class="input-qty-direct no-print">
                                 <span class="print-only"><strong>{{ qtd_sep }}</strong></span>
                             {% else %}
@@ -128,7 +147,42 @@
                 </tbody>
             </table>
 
-            <!-- Ações do Rodapé (Ocultas na Impressão) -->
+            <!-- Modal de Autenticação APENAS para Solicitantes de outros departamentos -->
+            {% if not eh_maf and requisicao.status == 'separado' %}
+            <div id="modalAuthDespacho" class="modal-backdrop" style="display: none;">
+                <div class="modal-box">
+                    <h3 style="margin-top: 0; color: #0a2540;">🔒 Autenticação do Solicitante</h3>
+                    <p style="font-size: 13.5px; color: #64748b;">Para assinar a entrega, o solicitante <strong>{{ requisicao.nome }}</strong> ({{ requisicao.registro }}) deve confirmar sua senha:</p>
+                    
+                    <div style="margin-bottom: 12px; text-align: left;">
+                        <label style="font-size: 12px; font-weight: bold; color: #334155;">Usuário ou Registro:</label>
+                        <input type="text" 
+                               name="auth_usuario" 
+                               id="auth_usuario" 
+                               class="form-input" 
+                               value="{{ requisicao.username or requisicao.registro }}" 
+                               placeholder="Ex: {{ requisicao.registro }}">
+                    </div>
+
+                    <div style="margin-bottom: 20px; text-align: left;">
+                        <label style="font-size: 12px; font-weight: bold; color: #334155;">Senha do Solicitante:</label>
+                        <input type="password" 
+                               name="auth_senha" 
+                               id="auth_senha" 
+                               class="form-input" 
+                               placeholder="Senha de acesso" 
+                               onkeydown="tratarEnterModal(event)">
+                    </div>
+
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="btn btn-secondary" onclick="fecharModalAuth()">Cancelar</button>
+                        <button type="button" class="btn btn-success-action" onclick="submeterFormularioUnico()">Confirmar Entrega</button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Rodapé de Ações -->
             <div class="actions-bar no-print">
                 <a href="{{ request.referrer or url_for('historico') }}" class="btn btn-secondary">
                     ← Voltar
@@ -139,10 +193,24 @@
                         🖨️ Imprimir Requisição
                     </button>
 
-                    {% if requisicao.status == 'pendente' and session.user.permissao in ['admin', 'administrador', 'abastecedor'] %}
-                        <button type="submit" class="btn btn-success-action" onclick="return confirm('Confirmar a separação desta requisição com as quantidades informadas?');">
-                            📦 Marcar como Separado
-                        </button>
+                    {% if session.user.permissao in ['admin', 'administrador', 'abastecedor'] %}
+                        {% if eh_maf %}
+                            <!-- MAF: Processo direto em passo único -->
+                            <button type="button" class="btn btn-success-action" onclick="processarRequisicaoMAF();">
+                                📦 Finalizar e Despachar (MAF)
+                            </button>
+                        {% else %}
+                            <!-- Demais Departamentos: 2 passos (Pendente -> Separado -> Concluído via Modal) -->
+                            {% if requisicao.status == 'pendente' %}
+                                <button type="button" class="btn btn-success-action" onclick="confirmarSeparacao();">
+                                    📦 Marcar como Separado
+                                </button>
+                            {% elif requisicao.status == 'separado' %}
+                                <button type="button" class="btn btn-success-action" onclick="abrirModalAuth();">
+                                    🚚 Despachar Requisição (Solicitante)
+                                </button>
+                            {% endif %}
+                        {% endif %}
                     {% endif %}
                 </div>
             </div>
@@ -169,18 +237,13 @@
             margin-bottom: 20px;
         }
 
-        .card-header h2 {
-            margin: 0;
-            color: #0a2540;
-            font-size: 1.5em;
-        }
+        .card-header h2 { margin: 0; color: #0a2540; font-size: 1.5em; }
 
         .status-badge {
             padding: 6px 14px;
             border-radius: 20px;
             font-size: 13px;
             font-weight: bold;
-            letter-spacing: 0.5px;
         }
 
         .status-pendente { background-color: #fef3c7; color: #92400e; }
@@ -198,185 +261,114 @@
             border: 1px solid #e2e8f0;
         }
 
-        .info-item strong {
-            display: block;
-            font-size: 12px;
-            color: #64748b;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-        }
+        .info-item strong { display: block; font-size: 12px; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
+        .info-item span { font-size: 14.5px; color: #1e293b; font-weight: 600; }
 
-        .info-item span {
-            font-size: 14.5px;
-            color: #1e293b;
-            font-weight: 600;
-        }
+        .table-detalhes { width: 100%; border-collapse: collapse; margin-bottom: 25px; border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1; }
+        .table-detalhes th, .table-detalhes td { border-bottom: 1px solid #e2e8f0; padding: 12px; text-align: left; }
+        .table-detalhes th { background-color: #0a2540; color: #ffffff; }
 
-        .section-title {
-            color: #0a2540;
-            margin-bottom: 15px;
-            font-size: 1.15em;
-            font-weight: 700;
-        }
+        .input-qty-direct { width: 75px; padding: 6px; text-align: center; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: bold; }
 
-        .table-detalhes {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 25px;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid #cbd5e1;
-        }
+        .actions-bar { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 20px; }
 
-        .table-detalhes th, .table-detalhes td {
-            border-bottom: 1px solid #e2e8f0;
-            padding: 12px;
-            text-align: left;
-            vertical-align: middle;
-        }
-
-        .table-detalhes th {
-            background-color: #0a2540;
-            color: #ffffff;
-            font-weight: 600;
-        }
-
-        .table-detalhes tbody tr:nth-child(even) {
-            background-color: #f8fafc;
-        }
-
-        /* Destaques de estoque */
-        .row-zerado {
-            background-color: #fff5f5 !important;
-            color: #991b1b;
-        }
-
-        .row-parcial {
-            background-color: #fefce8 !important;
-        }
-
-        .tag-sem-estoque {
-            font-size: 12px;
-            color: #dc2626;
-            font-weight: 600;
-            margin-left: 6px;
-        }
-
-        .tag-parcial {
-            font-size: 12px;
-            color: #ca8a04;
-            font-weight: 600;
-            margin-left: 6px;
-        }
-
-        /* Estilo do campo de quantidade direta */
-        .input-qty-direct {
-            width: 65px;
-            padding: 6px 8px;
-            text-align: center;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: bold;
-            color: #0a2540;
-            background-color: #ffffff;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            appearance: textfield;
-            -webkit-appearance: textfield;
-            -moz-appearance: textfield;
-        }
-
-        .input-qty-direct:focus {
-            border-color: #0284c7;
-            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
-        }
-
-        .input-qty-direct::-webkit-outer-spin-button,
-        .input-qty-direct::-webkit-inner-spin-button {
-            appearance: none;
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        code {
-            background-color: #f1f5f9;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: monospace;
-            color: #0a2540;
-            font-weight: 600;
-        }
-
-        .actions-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-top: 1px solid #e2e8f0;
-            padding-top: 20px;
-        }
-
-        .btn {
-            padding: 9px 18px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: background 0.2s;
-        }
-
+        .btn { padding: 9px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
         .btn-secondary { background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }
-        .btn-secondary:hover { background-color: #e2e8f0; }
-
         .btn-outline { background-color: #ffffff; color: #0284c7; border: 1px solid #cbd5e1; }
-        .btn-outline:hover { background-color: #f0f9ff; }
-
         .btn-success-action { background-color: #16a34a; color: white; }
-        .btn-success-action:hover { background-color: #15803d; }
 
-        .print-only { display: none; }
+        .modal-backdrop {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 37, 64, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
 
-        /* Regra de Impressão */
-        @media print {
-            body * {
-                visibility: hidden !important;
-            }
+        .modal-box {
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            border: 1px solid #cbd5e1;
+        }
 
-            #area-impressao, #area-impressao * {
-                visibility: visible !important;
-            }
-
-            #area-impressao {
-                position: absolute !important;
-                left: 0 !important;
-                top: 0 !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                box-shadow: none !important;
-                border: none !important;
-                padding: 0 !important;
-                margin: 0 !important;
-            }
-
-            .no-print {
-                display: none !important;
-            }
-
-            .print-only {
-                display: inline !important;
-            }
-
-            .table-detalhes th {
-                background-color: #0a2540 !important;
-                color: #ffffff !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
+        .form-input {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-top: 4px;
+            box-sizing: border-box;
         }
     </style>
+
+    <script>
+        function abrirModalAuth() {
+            const el = document.getElementById('modalAuthDespacho');
+            if (el) {
+                el.style.display = 'flex';
+                setTimeout(() => {
+                    const pass = document.getElementById('auth_senha');
+                    if (pass) pass.focus();
+                }, 100);
+            }
+        }
+
+        function fecharModalAuth() {
+            const el = document.getElementById('modalAuthDespacho');
+            if (el) el.style.display = 'none';
+        }
+
+        function tratarEnterModal(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                submeterFormularioUnico();
+            }
+        }
+
+        function submeterFormularioUnico() {
+            const usuarioInput = document.getElementById('auth_usuario');
+            const senhaInput = document.getElementById('auth_senha');
+
+            if (usuarioInput && !usuarioInput.value.trim()) {
+                alert('Por favor, informe a matrícula ou usuário do solicitante.');
+                usuarioInput.focus();
+                return;
+            }
+
+            if (senhaInput && !senhaInput.value.trim()) {
+                alert('Por favor, informe a senha do solicitante.');
+                senhaInput.focus();
+                return;
+            }
+
+            document.getElementById('formSeparacao').submit();
+        }
+
+        function confirmarSeparacao() {
+            if (confirm('Confirmar a separação desta requisição?')) {
+                document.getElementById('formSeparacao').submit();
+            }
+        }
+
+        function processarRequisicaoMAF() {
+            const inputNF = document.getElementById('nota_fiscal');
+            if (inputNF && !inputNF.value.trim()) {
+                alert('A Nota Fiscal é obrigatória para este departamento antes de prosseguir.');
+                inputNF.focus();
+                return;
+            }
+
+            if (confirm('Confirmar o processamento e despacho direto desta requisição MAF?')) {
+                document.getElementById('formSeparacao').submit();
+            }
+        }
+    </script>
 {% endblock %}

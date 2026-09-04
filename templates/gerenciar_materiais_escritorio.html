@@ -25,7 +25,7 @@
             </form>
 
             <small class="help-text">
-                Cabeçalho esperado: <code>codigo;descricao;quantidade_maxima</code>
+                Cabeçalho esperado: <code>codigo;descricao;estoque_minimo</code>
             </small>
         </div>
 
@@ -46,8 +46,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="quantidade_maxima">Qtd. Máxima por Requisição:</label>
-                    <input type="number" id="quantidade_maxima" name="quantidade_maxima" min="1" placeholder="Ex: 5" required>
+                    <label for="estoque_minimo">Estoque Mínimo (Alerta de Reposição):</label>
+                    <input type="number" id="estoque_minimo" name="estoque_minimo" min="0" placeholder="Ex: 5" required>
                 </div>
 
                 <button type="submit" class="btn-primary">Cadastrar Material</button>
@@ -72,8 +72,8 @@
                 <tr>
                     <th>Código</th>
                     <th>Descrição</th>
-                    <th>Qtd. Máxima</th>
-                    <th>Ações</th>
+                    <th style="text-align: center;">Estoque Mínimo</th>
+                    <th style="text-align: center;">Ações</th>
                 </tr>
             </thead>
             <tbody>
@@ -81,9 +81,9 @@
                 <tr>
                     <td><strong>{{ m.codigo }}</strong></td>
                     <td>{{ m.descricao }}</td>
-                    <td>{{ m.quantidade_maxima }}</td>
-                    <td>
-                        <div style="display: flex; gap: 8px; align-items: center;">
+                    <td style="text-align: center;"><strong>{{ m.estoque_minimo if m.estoque_minimo is defined else 0 }}</strong></td>
+                    <td style="text-align: center;">
+                        <div style="display: flex; gap: 8px; align-items: center; justify-content: center;">
                             <a href="{{ url_for('editar_material', codigo_material=m.codigo) }}" class="btn-edit">Editar</a>
                             <form action="{{ url_for('excluir_material') }}" method="post" onsubmit="return confirm('Tem certeza que deseja excluir o material {{ m.descricao }}?');" style="margin: 0;">
                                 <input type="hidden" name="codigo_material" value="{{ m.codigo }}">

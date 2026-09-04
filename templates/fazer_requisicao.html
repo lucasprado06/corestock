@@ -37,14 +37,14 @@
         <div id="itens-container">
             <!-- Primeiro item (obrigatório) -->
             <div class="item-linha" id="item-0">
-                <select name="materiais[0][codigo]" required class="input-select">
+                <select name="materiais[0][codigo]" id="select-0" required class="input-select" onchange="verificarEstoqueDisponivel(0)">
                     <option value="" disabled selected>Selecione o material</option>
                     {% for m in materiais %}
                         <option value="{{ m.codigo }}">{{ m.descricao }}</option>
                     {% endfor %}
                 </select>
 
-                <input type="number" name="materiais[0][quantidade]" placeholder="Qtd" min="1" required class="input-qtd">
+                <input type="number" name="materiais[0][quantidade]" id="qtd-0" placeholder="Qtd" min="1" required class="input-qtd" onchange="verificarEstoqueDisponivel(0)" oninput="verificarEstoqueDisponivel(0)">
                 
                 <div class="spacer-btn"></div>
             </div>
@@ -209,25 +209,27 @@
 
     <script>
         let itemIndex = 1;
+        const estoquesChecados = {};
 
         function adicionarItem() {
             const container = document.getElementById('itens-container');
+            const currentIndex = itemIndex;
             
             const novaLinha = document.createElement('div');
             novaLinha.className = 'item-linha';
-            novaLinha.id = `item-${itemIndex}`;
+            novaLinha.id = `item-${currentIndex}`;
 
             novaLinha.innerHTML = `
-                <select name="materiais[${itemIndex}][codigo]" required class="input-select">
+                <select name="materiais[${currentIndex}][codigo]" id="select-${currentIndex}" required class="input-select" onchange="verificarEstoqueDisponivel(${currentIndex})">
                     <option value="" disabled selected>Selecione o material</option>
                     {% for m in materiais %}
                         <option value="{{ m.codigo }}">{{ m.descricao }}</option>
                     {% endfor %}
                 </select>
 
-                <input type="number" name="materiais[${itemIndex}][quantidade]" placeholder="Qtd" min="1" required class="input-qtd">
+                <input type="number" name="materiais[${currentIndex}][quantidade]" id="qtd-${currentIndex}" placeholder="Qtd" min="1" required class="input-qtd" onchange="verificarEstoqueDisponivel(${currentIndex})" oninput="verificarEstoqueDisponivel(${currentIndex})">
 
-                <button type="button" onclick="removerItem('item-${itemIndex}')" class="btn-remove">
+                <button type="button" onclick="removerItem('item-${currentIndex}')" class="btn-remove">
                     ✕
                 </button>
             `;
@@ -240,6 +242,37 @@
             const linha = document.getElementById(idLinha);
             if (linha) {
                 linha.remove();
+            }
+        }
+
+        async function verificarEstoqueDisponivel(idx) {
+            const select = document.getElementById(`select-${idx}`);
+            const inputQtd = document.getElementById(`qtd-${idx}`);
+            
+            if (!select || !inputQtd) return;
+
+            const codigo = select.value;
+            const qtdDigitada = parseInt(inputQtd.value) || 0;
+
+            if (!codigo || qtdDigitada <= 0) return;
+
+            try {
+                const res = await fetch(`/api/checar_estoque/${codigo}`);
+                const dados = await res.json();
+
+                if (dados.sucesso) {
+                    const saldo = dados.saldo;
+                    const chaveAlerta = `${codigo}_${idx}`;
+
+                    if (qtdDigitada > saldo && !estoquesChecados[chaveAlerta]) {
+                        alert(`⚠️ Aviso de Saldo em Estoque:\n\nO item '${dados.descricao}' possui apenas ${saldo} unidade(s) em estoque atualmente.\n\nSua requisição será enviada normalmente, mas poderá sofrer atendimento parcial na separação.`);
+                        estoquesChecados[chaveAlerta] = true;
+                    } else if (qtdDigitada <= saldo) {
+                        estoquesChecados[chaveAlerta] = false;
+                    }
+                }
+            } catch (err) {
+                console.error("Erro ao verificar estoque:", err);
             }
         }
     </script>

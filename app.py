@@ -13,56 +13,11 @@ import pandas as pd
 app = Flask(__name__)
 app.secret_key = 'sua_chave_secreta_aqui'
 
-# --- FUNÇÕES AUXILIARES DE TEXTO ---
-def normalizar_texto(texto):
-    """Remove acentos, espaços extras e converte para minúsculo"""
-    if not texto:
-        return ""
-    texto_str = str(texto).strip().lower()
-    return unicodedata.normalize('NFKD', texto_str).encode('ASCII', 'ignore').decode('utf-8')
+MOVIMENTACOES_FILE = 'movimentacoes.json'
 
-# --- FUNÇÕES DE CARREGAMENTO E SALVAMENTO DE DADOS ---
-def carregar_dados(caminho_arquivo, default_data):
-    os.makedirs(os.path.dirname(caminho_arquivo), exist_ok=True)
-    if not os.path.exists(caminho_arquivo) or os.path.getsize(caminho_arquivo) == 0:
-        with open(caminho_arquivo, 'w', encoding='utf-8') as f:
-            json.dump(default_data, f)
-    with open(caminho_arquivo, 'r', encoding='utf-8') as f:
-        return json.load(f)
-
-def salvar_dados(caminho_arquivo, data):
-    with open(caminho_arquivo, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=4)
-
-def carregar_usuarios():
-    caminho = os.path.join('data', 'usuarios.json')
-    if not os.path.exists(caminho):
-        return []
-    with open(caminho, 'r', encoding='utf-8') as f:
-        return json.load(f)
-
-def salvar_usuarios(usuarios):
-    salvar_dados('data/usuarios.json', usuarios)
-
-def carregar_materiais():
-    return carregar_dados('data/materiais.json', [])
-
-def salvar_materiais(materiais):
-    salvar_dados('data/materiais.json', materiais)
-
-def carregar_requisicoes():
-    return carregar_dados('data/requisicoes.json', [])
-
-def salvar_requisicoes(requisicoes):
-    salvar_dados('data/requisicoes.json', requisicoes)
-
-def carregar_departamentos():
-    return carregar_dados('data/departamentos.json', ["Logística", "Recursos Humanos", "Financeiro", "TI", "Produção", "MAF Betim", "MAF Porto Real"])
-
-def salvar_departamentos(departamentos):
-    salvar_dados('data/departamentos.json', departamentos)
 
 # --- DECORADORES DE AUTENTICAÇÃO E PERMISSÃO ---
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -77,6 +32,7 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -86,6 +42,7 @@ def admin_required(f):
             return redirect(url_for('home'))
         return f(*args, **kwargs)
     return decorated_function
+
 
 def gestor_required(f):
     """Permite acesso para Admin e Abastecedor"""
@@ -98,6 +55,7 @@ def gestor_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+
 def solicitante_ou_admin_required(f):
     """Permite criar requisições apenas para Solicitante e Administrador"""
     @wraps(f)
@@ -109,7 +67,105 @@ def solicitante_ou_admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+
+# --- FUNÇÕES AUXILIARES DE TEXTO ---
+
+def normalizar_texto(texto):
+    """Remove acentos, espaços extras e converte para minúsculo"""
+    if not texto:
+        return ""
+    texto_str = str(texto).strip().lower()
+    return unicodedata.normalize('NFKD', texto_str).encode('ASCII', 'ignore').decode('utf-8')
+
+
+# --- FUNÇÕES DE CARREGAMENTO E SALVAMENTO DE DADOS ---
+
+def carregar_dados(caminho_arquivo, default_data):
+    os.makedirs(os.path.dirname(caminho_arquivo), exist_ok=True)
+    if not os.path.exists(caminho_arquivo) or os.path.getsize(caminho_arquivo) == 0:
+        with open(caminho_arquivo, 'w', encoding='utf-8') as f:
+            json.dump(default_data, f)
+    with open(caminho_arquivo, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+
+def salvar_dados(caminho_arquivo, data):
+    with open(caminho_arquivo, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=4)
+
+
+def carregar_usuarios():
+    caminho = os.path.join('data', 'usuarios.json')
+    if not os.path.exists(caminho):
+        return []
+    with open(caminho, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+
+def salvar_usuarios(usuarios):
+    salvar_dados('data/usuarios.json', usuarios)
+
+
+def carregar_materiais():
+    return carregar_dados('data/materiais.json', [])
+
+
+def salvar_materiais(materiais):
+    salvar_dados('data/materiais.json', materiais)
+
+
+def carregar_requisicoes():
+    return carregar_dados('data/requisicoes.json', [])
+
+
+def salvar_requisicoes(requisicoes):
+    salvar_dados('data/requisicoes.json', requisicoes)
+
+
+def carregar_departamentos():
+    return carregar_dados('data/departamentos.json', ["Logística", "Recursos Humanos", "Financeiro", "TI", "Produção", "MAF Betim", "MAF Porto Real"])
+
+
+def salvar_departamentos(departamentos):
+    salvar_dados('data/departamentos.json', departamentos)
+
+
+def carregar_movimentacoes():
+    if not os.path.exists(MOVIMENTACOES_FILE):
+        return []
+    with open(MOVIMENTACOES_FILE, 'r', encoding='utf-8') as f:
+        try:
+            return json.load(f)
+        except json.JSONDecodeError:
+            return []
+
+
+def salvar_movimentacoes(movs):
+    with open(MOVIMENTACOES_FILE, 'w', encoding='utf-8') as f:
+        json.dump(movs, f, ensure_ascii=False, indent=4)
+
+
+def registrar_movimentacao(codigo, descricao, categoria, tipo, quantidade, usuario, nota_fiscal='-', motivo='-', requisicao_id=None):
+    movs = carregar_movimentacoes()
+    nova_mov = {
+        'id': len(movs) + 1,
+        'data': datetime.now().strftime('%d/%m/%Y %H:%M'),
+        'codigo_material': str(codigo),
+        'descricao_material': descricao,
+        'categoria': categoria,
+        'tipo': tipo,
+        'quantidade': int(quantidade),
+        'nota_fiscal': nota_fiscal or '-',
+        'motivo': motivo or '-',
+        'requisicao_id': requisicao_id,
+        'usuario': usuario
+    }
+    movs.append(nova_mov)
+    salvar_movimentacoes(movs)
+
+
 # --- ROTAS PRINCIPAIS ---
+
 @app.route('/')
 def home():
     if 'user' in session:
@@ -120,6 +176,7 @@ def home():
             return redirect(url_for('fazer_requisicao'))
     return redirect(url_for('login'))
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -128,7 +185,6 @@ def login():
 
         usuarios = carregar_usuarios()
         
-        # Busca o usuário pelo Nome de Usuário (username)
         usuario_encontrado = next(
             (u for u in usuarios if str(u.get('username', '')).strip().lower() == username or str(u.get('registro', '')).strip().lower() == username), 
             None
@@ -165,10 +221,12 @@ def login():
 
     return render_template('login.html')
 
+
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
+
 
 @app.route('/trocar_senha_obrigatoria', methods=['GET', 'POST'])
 def trocar_senha_obrigatoria():
@@ -199,6 +257,7 @@ def trocar_senha_obrigatoria():
         return redirect(url_for('home'))
 
     return render_template('trocar_senha_obrigatoria.html')
+
 
 @app.route('/trocar_senha', methods=['GET', 'POST'])
 @login_required
@@ -240,6 +299,7 @@ def trocar_senha():
 
     return render_template('trocar_senha.html')
 
+
 @app.route('/fazer_requisicao')
 @login_required
 @solicitante_ou_admin_required
@@ -251,11 +311,9 @@ def fazer_requisicao():
     registro_logado = str(usuario_logado.get('registro')).strip()
     permissao_usuario = usuario_logado.get('permissao', '')
     
-    # Busca as informações atualizadas do usuário no banco/json
     usuarios = carregar_usuarios()
     dados_usuario = next((u for u in usuarios if str(u.get('registro') or u.get('username', '')).strip() == registro_logado), {})
     
-    # Acesso permitido se for Admin OU se a flag individual pode_solicitar_epi for True
     pode_acessar_epi = (
         permissao_usuario in ['admin', 'administrador'] or 
         dados_usuario.get('pode_solicitar_epi', False) is True
@@ -280,6 +338,7 @@ def fazer_requisicao():
         pode_acessar_epi=pode_acessar_epi
     )
 
+
 @app.route('/enviar_requisicao', methods=['POST'])
 @login_required
 @solicitante_ou_admin_required
@@ -299,8 +358,9 @@ def enviar_requisicao():
                 continue
 
             quantidade = int(quantidade)
+            if quantidade <= 0:
+                continue
 
-            # Busca o material considerando o CÓDIGO e a CATEGORIA selecionada
             material_encontrado = next(
                 (
                     m for m in materiais_disponiveis 
@@ -311,13 +371,9 @@ def enviar_requisicao():
             )
             
             if not material_encontrado:
-                flash(f'Material com código {codigo_material} não encontrado na categoria selecionada.', 'danger')
+                flash(f'Material com código {codigo_material} não encontrado.', 'danger')
                 return redirect(url_for('fazer_requisicao'))
 
-            if quantidade > material_encontrado['quantidade_maxima']:
-                flash(f"A quantidade de '{material_encontrado['descricao']}' excede o limite de {material_encontrado['quantidade_maxima']} por requisição.", 'warning')
-                return redirect(url_for('fazer_requisicao'))
-            
             itens_requisicao.append({
                 'codigo': codigo_material,
                 'nome': material_encontrado['descricao'],
@@ -327,14 +383,18 @@ def enviar_requisicao():
             })
 
     if not itens_requisicao:
-        flash('Nenhum item foi adicionado à requisição.', 'warning')
+        flash('Nenhum item válido foi adicionado à requisição.', 'warning')
         return redirect(url_for('fazer_requisicao'))
 
     requisicoes = carregar_requisicoes()
     usuario_logado = session['user']
     
+    # ID sequencial auto-incrementado
+    max_id = max([req.get('id', 0) for req in requisicoes], default=0)
+    novo_id = max_id + 1
+
     nova_requisicao = {
-        'id': len(requisicoes) + 1,
+        'id': novo_id,
         'nome': usuario_logado.get('nome'),
         'username': usuario_logado.get('username'),
         'registro': usuario_logado.get('registro'),
@@ -342,13 +402,14 @@ def enviar_requisicao():
         'categoria': categoria_solicitacao,
         'data': datetime.now().strftime('%d/%m/%Y %H:%M'),
         'status': 'pendente',
+        'nota_fiscal': '-',
         'itens': itens_requisicao
     }
 
     requisicoes.append(nova_requisicao)
     salvar_requisicoes(requisicoes)
     
-    flash('Sua requisição foi enviada com sucesso e está pendente de separação!', 'success')
+    flash(f'Requisição #{novo_id} enviada com sucesso!', 'success')
     return redirect(url_for('fazer_requisicao', categoria=categoria_solicitacao))
 
 @app.route('/pendentes')
@@ -359,49 +420,6 @@ def pendentes():
     pendentes_list = [r for r in requisicoes if r.get('status') == 'pendente']
     return render_template('pendentes.html', requisicoes=pendentes_list)
 
-@app.route('/concluir_requisicao', methods=['POST'])
-@login_required
-@gestor_required
-def concluir_requisicao():
-    requisicao_id = int(request.form.get('requisicao_id'))
-    requisicoes = carregar_requisicoes()
-    materiais = carregar_materiais()
-    requisicao = next((r for r in requisicoes if r['id'] == requisicao_id), None)
-    
-    if requisicao:
-        for item in requisicao.get('itens', []):
-            codigo_item = str(item.get('codigo', ''))
-            nova_qtd_str = request.form.get(f'qtd_item_{codigo_item}')
-            
-            if 'quantidade_solicitada' not in item:
-                item['quantidade_solicitada'] = item.get('quantidade', 0)
-            
-            if nova_qtd_str is not None:
-                try:
-                    nova_qtd = int(nova_qtd_str)
-                    
-                    # Localiza o cadastro original do material para obter o limite do sistema
-                    mat_cadastrado = next((m for m in materiais if str(m['codigo']) == codigo_item), None)
-                    limite_max = mat_cadastrado['quantidade_maxima'] if mat_cadastrado else 9999
-                    
-                    if nova_qtd > limite_max:
-                        flash(f"A quantidade do item '{item.get('nome')}' não pode ultrapassar o limite cadastrado no sistema ({limite_max}).", 'warning')
-                        return redirect(url_for('ver_requisicao', requisicao_id=requisicao_id))
-                    
-                    item['quantidade_separada'] = max(0, nova_qtd)
-                except ValueError:
-                    pass
-
-        requisicao['status'] = 'separado'
-        requisicao['data_retirada'] = datetime.now().strftime('%d/%m/%Y %H:%M')
-        requisicao['separado_por'] = session['user'].get('nome', '')
-        
-        salvar_requisicoes(requisicoes)
-        flash(f'Requisição #{requisicao_id} separada com sucesso!', 'success')
-        return redirect(url_for('pendentes'))
-    else:
-        flash('Requisição não encontrada.', 'danger')
-        return redirect(url_for('pendentes'))
 
 @app.route('/separados')
 @login_required
@@ -411,88 +429,327 @@ def separados():
     separados_list = [r for r in requisicoes if r.get('status') == 'separado']
     return render_template('separados.html', requisicoes=separados_list)
 
-@app.route('/finalizar_requisicao', methods=['POST'])
+
+@app.route('/concluir_requisicao', methods=['POST'])
 @login_required
 @gestor_required
-def finalizar_requisicao():
-    requisicao_id = str(request.form.get('requisicao_id'))
+def concluir_requisicao():
+    requisicao_id_raw = request.form.get('requisicao_id')
+    if not requisicao_id_raw:
+        flash('ID de requisição inválido.', 'danger')
+        return redirect(url_for('pendentes'))
+        
+    requisicao_id = int(requisicao_id_raw)
     requisicoes = carregar_requisicoes()
-    requisicao = next((r for r in requisicoes if str(r['id']) == requisicao_id), None)
-
+    materiais_disponiveis = carregar_materiais()
+    
+    requisicao = next((r for r in requisicoes if r['id'] == requisicao_id), None)
     if not requisicao:
         flash('Requisição não encontrada.', 'danger')
-        return redirect(url_for('separados'))
+        return redirect(url_for('pendentes'))
 
-    categoria = requisicao.get('categoria', 'escritorio')
-    usuario_logado = session['user']
-    
-    # --- FLUXO PARA EPIs / UNIDADES REMOTAS (Validação via NF + Senha do Abastecedor) ---
-    if categoria == 'epi':
-        numero_nf = request.form.get('numero_nf', '').strip()
-        senha_abastecedor = request.form.get('senha_abastecedor', '').strip()
+    categoria_req = requisicao.get('categoria', 'escritorio')
+    depto_solicitante = str(requisicao.get('departamento', '')).strip().lower()
+    eh_maf = ('maf porto real' in depto_solicitante) or ('maf betim' in depto_solicitante)
+    acao_final = request.form.get('acao_final')
 
-        if not numero_nf:
-            flash('Por favor, informe o número da Nota Fiscal de Transferência.', 'warning')
-            return redirect(url_for('separados'))
+    # A) FLUXO EM PASSO ÚNICO PARA DEPARTAMENTOS MAF (Porto Real / Betim)
+    if eh_maf or acao_final == 'concluir_direto':
+        nf_form = request.form.get('nota_fiscal', '').strip()
+        if not nf_form and not requisicao.get('nota_fiscal'):
+            flash(f'A Nota Fiscal é obrigatória para requisições do departamento "{requisicao.get("departamento")}".', 'danger')
+            return redirect(url_for('ver_requisicao', requisicao_id=requisicao_id))
 
-        # Valida a senha do próprio abastecedor logado
-        registro_logado = str(usuario_logado.get('registro')).strip()
-        usuarios = carregar_usuarios()
-        abastecedor_atual = next((u for u in usuarios if str(u.get('registro') or u.get('username', '')).strip() == registro_logado), None)
+        nota_fiscal_final = nf_form or requisicao.get('nota_fiscal') or '-'
+        requisicao['nota_fiscal'] = nota_fiscal_final
+        requisicao['nota_fiscal_transferencia'] = nota_fiscal_final
 
-        if not abastecedor_atual:
-            flash('Sessão inválida. Faça login novamente.', 'danger')
-            return redirect(url_for('separados'))
+        # Processa as quantidades separadas e baixa estoque
+        for item in requisicao.get('itens', []):
+            codigo_item = str(item.get('codigo', ''))
+            nova_qtd_str = request.form.get(f'qtd_item_{codigo_item}')
+            
+            try:
+                qtd_separar = int(nova_qtd_str) if nova_qtd_str is not None else item.get('quantidade', 0)
+            except ValueError:
+                qtd_separar = item.get('quantidade', 0)
 
-        senha_salva = abastecedor_atual.get('senha', '')
-        senha_valida = check_password_hash(senha_salva, senha_abastecedor) if (senha_salva.startswith('scrypt:') or senha_salva.startswith('pbkdf2:')) else (senha_salva == senha_abastecedor)
+            qtd_separar = max(0, qtd_separar)
+            item['quantidade_separada'] = qtd_separar
 
-        if not senha_valida:
-            flash('Sua senha de confirmação está incorreta. A baixa não foi realizada.', 'danger')
-            return redirect(url_for('separados'))
+            # Baixa no saldo de Estoque de Escritório
+            if categoria_req == 'escritorio' and qtd_separar > 0:
+                mat_estoque = next((m for m in materiais_disponiveis if str(m['codigo']) == codigo_item), None)
+                if mat_estoque:
+                    mat_estoque['saldo'] = max(0, mat_estoque.get('saldo', 0) - qtd_separar)
 
-        # Grava os dados de envio da NF
+            # Grava o histórico de movimentação
+            if qtd_separar > 0:
+                registrar_movimentacao(
+                    codigo=item.get('codigo', '-'),
+                    descricao=item.get('nome') or item.get('descricao', '-'),
+                    categoria=categoria_req,
+                    tipo='Consumo Requisição',
+                    quantidade=qtd_separar,
+                    usuario=session['user'].get('nome', 'Abastecedor'),
+                    nota_fiscal=nota_fiscal_final,
+                    motivo=f"Baixa Direta Requisição {requisicao['id']}",
+                    requisicao_id=requisicao['id']
+                )
+
+        agora = datetime.now().strftime('%d/%m/%Y %H:%M')
         requisicao['status'] = 'concluida'
-        requisicao['nota_fiscal'] = numero_nf
-        requisicao['data_conclusao'] = datetime.now().strftime('%d/%m/%Y %H:%M')
-        requisicao['finalizado_por'] = usuario_logado.get('nome', '')
+        requisicao['data_retirada'] = agora
+        requisicao['data_conclusao'] = agora
+        requisicao['separado_por'] = session['user'].get('nome', 'Abastecedor')
+        requisicao['finalizado_por'] = session['user'].get('nome', 'Abastecedor')
+
         salvar_requisicoes(requisicoes)
+        salvar_materiais(materiais_disponiveis)
 
-        flash(f'Requisição #{requisicao_id} enviada com sucesso! NF: {numero_nf}', 'success')
+        flash(f'Requisição #{requisicao_id} finalizada e despachada com sucesso!', 'success')
         return redirect(url_for('separados'))
 
-    # --- FLUXO PARA MATERIAIS DE ESCRITÓRIO (Validação por Senha do Solicitante) ---
-    registro_solicitante = str(request.form.get('registro_solicitante', '')).strip()
-    senha_solicitante = request.form.get('senha_solicitante')
+    # B) FLUXO EM 2 PASSOS PARA OUTROS DEPARTAMENTOS
+    # Passo 1: Marcar como Separado
+    if requisicao.get('status') == 'pendente':
+        requisicao['nota_fiscal'] = '-'
+        requisicao['nota_fiscal_transferencia'] = '-'
 
-    registro_original = str(requisicao.get('registro', '')).strip()
-    if registro_solicitante != registro_original:
-        flash(f'Atenção: Apenas o próprio solicitante (Registro {registro_original}) pode confirmar a retirada deste pedido.', 'danger')
+        itens_para_processar = []
+
+        for item in requisicao.get('itens', []):
+            codigo_item = str(item.get('codigo', ''))
+            nova_qtd_str = request.form.get(f'qtd_item_{codigo_item}')
+            
+            try:
+                qtd_separar = int(nova_qtd_str) if nova_qtd_str is not None else item.get('quantidade', 0)
+            except ValueError:
+                qtd_separar = item.get('quantidade', 0)
+
+            qtd_separar = max(0, qtd_separar)
+
+            if categoria_req == 'escritorio':
+                mat_estoque = next((m for m in materiais_disponiveis if str(m['codigo']) == codigo_item), None)
+                if not mat_estoque:
+                    flash(f"Material {item.get('nome')} não cadastrado no estoque.", 'danger')
+                    return redirect(url_for('ver_requisicao', requisicao_id=requisicao_id))
+
+                saldo_atual = mat_estoque.get('saldo', 0)
+
+                if qtd_separar > saldo_atual:
+                    flash(
+                        f"Saldo insuficiente para '{item.get('nome')}'. "
+                        f"Solicitado: {qtd_separar} un | Saldo em Estoque: {saldo_atual} un.", 
+                        'danger'
+                    )
+                    return redirect(url_for('ver_requisicao', requisicao_id=requisicao_id))
+
+                itens_para_processar.append({
+                    'item_ref': item,
+                    'mat_estoque': mat_estoque,
+                    'qtd_separar': qtd_separar
+                })
+            else:
+                item['quantidade_solicitada'] = item.get('quantidade_solicitada', item.get('quantidade', 0))
+                item['quantidade_separada'] = qtd_separar
+
+                if qtd_separar > 0:
+                    registrar_movimentacao(
+                        codigo=item.get('codigo', '-'),
+                        descricao=item.get('nome') or item.get('descricao', '-'),
+                        categoria='epi',
+                        tipo='Consumo Requisição',
+                        quantidade=qtd_separar,
+                        usuario=session['user'].get('nome', 'Abastecedor'),
+                        nota_fiscal='-',
+                        motivo=f"Baixa da Requisição {requisicao['id']}",
+                        requisicao_id=requisicao['id']
+                    )
+
+        if categoria_req == 'escritorio':
+            for proc in itens_para_processar:
+                item = proc['item_ref']
+                mat_estoque = proc['mat_estoque']
+                qtd_separada = proc['qtd_separar']
+
+                item['quantidade_solicitada'] = item.get('quantidade_solicitada', item.get('quantidade', 0))
+                item['quantidade_separada'] = qtd_separada
+
+                if qtd_separada > 0:
+                    mat_estoque['saldo'] = mat_estoque.get('saldo', 0) - qtd_separada
+                    
+                    registrar_movimentacao(
+                        codigo=mat_estoque['codigo'],
+                        descricao=mat_estoque['descricao'],
+                        categoria='escritorio',
+                        tipo='Consumo Requisição',
+                        quantidade=qtd_separada,
+                        usuario=session['user'].get('nome', 'Abastecedor'),
+                        nota_fiscal='-',
+                        motivo=f"Baixa da Requisição {requisicao['id']}",
+                        requisicao_id=requisicao['id']
+                    )
+
+        requisicao['status'] = 'separado'
+        requisicao['data_retirada'] = datetime.now().strftime('%d/%m/%Y %H:%M')
+        requisicao['separado_por'] = session['user'].get('nome', '')
+        
+        salvar_requisicoes(requisicoes)
+        salvar_materiais(materiais_disponiveis)
+        
+        flash(f'Requisição #{requisicao_id} separada com sucesso!', 'success')
+        return redirect(url_for('pendentes'))
+
+    # Passo 2: Despachar com Assinatura do Solicitante
+    elif requisicao.get('status') == 'separado':
+        auth_user = request.form.get('auth_usuario', '').strip().lower()
+        auth_senha = request.form.get('auth_senha', '').strip()
+
+        if not auth_user or not auth_senha:
+            flash('Informe o usuário/registro e a senha do solicitante para autenticar a entrega.', 'danger')
+            return redirect(url_for('ver_requisicao', requisicao_id=requisicao_id))
+
+        usuarios = carregar_usuarios()
+        usuario_valido = next(
+            (u for u in usuarios if str(u.get('username', '')).strip().lower() == auth_user or str(u.get('registro', '')).strip().lower() == auth_user),
+            None
+        )
+
+        if not usuario_valido:
+            flash('Usuário/Registro do solicitante não encontrado.', 'danger')
+            return redirect(url_for('ver_requisicao', requisicao_id=requisicao_id))
+
+        senha_salva = usuario_valido.get('senha', '')
+        senha_correta = check_password_hash(senha_salva, auth_senha) if (senha_salva.startswith('scrypt:') or senha_salva.startswith('pbkdf2:')) else (senha_salva == auth_senha)
+
+        if not senha_correta:
+            flash('Senha do solicitante incorreta. Despacho cancelado.', 'danger')
+            return redirect(url_for('ver_requisicao', requisicao_id=requisicao_id))
+
+        requisicao['status'] = 'concluida'
+        requisicao['data_conclusao'] = datetime.now().strftime('%d/%m/%Y %H:%M')
+        requisicao['finalizado_por'] = usuario_valido.get('nome', '')
+        
+        salvar_requisicoes(requisicoes)
+        flash(f'Requisição #{requisicao_id} despachada e concluída com sucesso por {usuario_valido.get("nome")}!', 'success')
         return redirect(url_for('separados'))
 
-    usuarios = carregar_usuarios()
-    solicitante = next((u for u in usuarios if str(u.get('registro') or u.get('username', '')).strip() == registro_solicitante), None)
+    return redirect(url_for('historico'))
 
-    if not solicitante:
-        flash('Registro do solicitante não encontrado.', 'danger')
-        return redirect(url_for('separados'))
+@app.route('/estoque')
+@login_required
+def ver_estoque():
+    materiais = carregar_materiais()
+    
+    # 1. Filtra apenas os materiais de Escritório para a Posição de Estoque
+    materiais_escritorio = [
+        m for m in materiais 
+        if m.get('categoria', 'escritorio') == 'escritorio'
+    ]
+    
+    for m in materiais_escritorio:
+        if 'saldo' not in m:
+            m['saldo'] = 0
+            
+    return render_template('estoque.html', materiais=materiais_escritorio)
 
-    senha_salva = solicitante.get('senha', '')
-    senha_valida = check_password_hash(senha_salva, senha_solicitante) if (senha_salva.startswith('scrypt:') or senha_salva.startswith('pbkdf2:')) else (senha_salva == senha_solicitante)
 
-    if not senha_valida:
-        flash('Senha incorreta. A requisição não foi finalizada.', 'danger')
-        return redirect(url_for('separados'))
+@app.route('/movimentar_estoque', methods=['GET', 'POST'])
+@login_required
+@gestor_required
+def movimentar_estoque():
+    materiais = carregar_materiais()
+    # Filtra apenas materiais de escritório para movimentação manual de saldo
+    materiais_escritorio = [
+        m for m in materiais 
+        if m.get('categoria', 'escritorio') == 'escritorio'
+    ]
+    
+    if request.method == 'POST':
+        codigo_material = str(request.form.get('codigo_material', '')).strip()
+        tipo_movimentacao = request.form.get('tipo_movimentacao')
+        quantidade = int(request.form.get('quantidade', 0))
+        nota_fiscal = request.form.get('nota_fiscal', '').strip()
+        motivo = request.form.get('motivo', '').strip()
+        usuario_nome = session['user'].get('nome', 'Sistema')
 
-    requisicao['status'] = 'concluida'
-    requisicao['data_conclusao'] = datetime.now().strftime('%d/%m/%Y %H:%M')
-    requisicao['finalizado_por'] = usuario_logado.get('nome', '')
-    salvar_requisicoes(requisicoes)
+        if quantidade <= 0:
+            flash('A quantidade deve ser maior que zero.', 'danger')
+            return redirect(url_for('movimentar_estoque'))
 
-    flash('Requisição finalizada com sucesso!', 'success')
-    return redirect(url_for('separados'))
+        material = next((m for m in materiais if str(m['codigo']) == codigo_material), None)
+
+        if not material:
+            flash('Material não encontrado no cadastro!', 'danger')
+            return redirect(url_for('movimentar_estoque'))
+
+        saldo_atual = material.get('saldo', 0)
+
+        if tipo_movimentacao in ['entrada_nf', 'entrada_manual']:
+            material['saldo'] = saldo_atual + quantidade
+            tipo_txt = 'Entrada por Nota Fiscal' if tipo_movimentacao == 'entrada_nf' else 'Entrada Manual'
+            
+            salvar_materiais(materiais)
+            registrar_movimentacao(
+                codigo=material['codigo'],
+                descricao=material['descricao'],
+                categoria=material.get('categoria', 'escritorio'),
+                tipo=tipo_txt,
+                quantidade=quantidade,
+                usuario=usuario_nome,
+                nota_fiscal=nota_fiscal,
+                motivo=motivo
+            )
+            flash(f"Entrada de {quantidade} un. em '{material['descricao']}' realizada com sucesso!", 'success')
+
+        elif tipo_movimentacao in ['saida_nf', 'saida_manual']:
+            if quantidade > saldo_atual:
+                flash(f"Saldo insuficiente em estoque! Saldo atual: {saldo_atual}", 'danger')
+                return redirect(url_for('movimentar_estoque'))
+
+            material['saldo'] = saldo_atual - quantidade
+            tipo_txt = 'Saída por Nota Fiscal' if tipo_movimentacao == 'saida_nf' else 'Saída Manual'
+
+            salvar_materiais(materiais)
+            registrar_movimentacao(
+                codigo=material['codigo'],
+                descricao=material['descricao'],
+                categoria=material.get('categoria', 'escritorio'),
+                tipo=tipo_txt,
+                quantidade=quantidade,
+                usuario=usuario_nome,
+                nota_fiscal=nota_fiscal,
+                motivo=motivo
+            )
+            flash(f"Saída de {quantidade} un. de '{material['descricao']}' realizada com sucesso!", 'warning')
+
+        return redirect(url_for('ver_estoque'))
+
+    return render_template('movimentar_estoque.html', materiais=materiais_escritorio)
+
+
+@app.route('/historico_movimentacoes')
+@login_required
+@gestor_required
+def historico_movimentacoes():
+    movimentacoes = carregar_movimentacoes()
+    # Exibe todo o histórico (Escritório + EPI), ordenando dos mais recentes para os mais antigos
+    movimentacoes.reverse()
+    return render_template('historico_movimentacoes.html', movimentacoes=movimentacoes)
+
+@app.route('/api/checar_estoque/<codigo>')
+@login_required
+def checar_estoque_api(codigo):
+    materiais = carregar_materiais()
+    mat = next((m for m in materiais if str(m['codigo']) == str(codigo)), None)
+    if mat:
+        return {'sucesso': True, 'saldo': mat.get('saldo', 0), 'descricao': mat['descricao']}
+    return {'sucesso': False, 'saldo': 0}
+
 
 # --- HISTÓRICO E EXPORTAÇÃO ---
+
 @app.route('/historico')
 @login_required
 def historico():
@@ -511,6 +768,7 @@ def historico():
     requisicoes_ordenadas = requisicoes_a_exibir[::-1]
     return render_template('historico.html', requisicoes=requisicoes_ordenadas)
 
+
 @app.route('/excluir_requisicao/<int:requisicao_id>', methods=['POST'])
 @login_required
 def excluir_requisicao(requisicao_id):
@@ -525,10 +783,22 @@ def excluir_requisicao(requisicao_id):
     registro_logado = str(usuario_logado.get('registro', '')).strip()
     permissao_logada = usuario_logado.get('permissao', '')
 
-    if permissao_logada in ['admin', 'administrador']:
+    def efetuar_exclusao_e_limpar_historico():
+        # 1. Remove a requisição da lista
         requisicoes.remove(requisicao_para_excluir)
         salvar_requisicoes(requisicoes)
-        flash(f'Requisição #{requisicao_id} excluída com sucesso.', 'success')
+
+        # 2. Busca e remove todas as movimentações atreladas a este ID de requisição
+        movimentacoes = carregar_movimentacoes()
+        movimentacoes_filtradas = [
+            m for m in movimentacoes 
+            if str(m.get('requisicao_id')) != str(requisicao_id)
+        ]
+        salvar_movimentacoes(movimentacoes_filtradas)
+
+    if permissao_logada in ['admin', 'administrador']:
+        efetuar_exclusao_e_limpar_historico()
+        flash(f'Requisição #{requisicao_id} e seus históricos de movimentação foram excluídos com sucesso.', 'success')
 
     elif permissao_logada == 'abastecedor':
         flash('Usuários do perfil Abastecedor não têm permissão para excluir requisições.', 'danger')
@@ -539,8 +809,7 @@ def excluir_requisicao(requisicao_id):
 
         if registro_pedido == registro_logado:
             if status_pedido == 'pendente':
-                requisicoes.remove(requisicao_para_excluir)
-                salvar_requisicoes(requisicoes)
+                efetuar_exclusao_e_limpar_historico()
                 flash(f'Sua requisição #{requisicao_id} foi excluída com sucesso!', 'success')
             else:
                 flash('Não é possível excluir uma requisição que já foi separada ou concluída.', 'warning')
@@ -549,13 +818,13 @@ def excluir_requisicao(requisicao_id):
 
     return redirect(request.referrer or url_for('historico'))
 
+
 @app.route('/exportar_relatorio_excel')
 @login_required
 @gestor_required
 def exportar_relatorio_excel():
     requisicoes = carregar_requisicoes()
     
-    # Obtém as datas informadas no filtro
     data_inicio_str = request.args.get('data_inicio')
     data_fim_str = request.args.get('data_fim')
     
@@ -565,7 +834,6 @@ def exportar_relatorio_excel():
     linhas_relatorio = []
 
     for req in requisicoes:
-        # Tenta converter a data da requisição para comparação (Formato esperado: DD/MM/YYYY ou YYYY-MM-DD)
         data_req_raw = req.get('data', '')
         try:
             if '/' in data_req_raw:
@@ -575,44 +843,39 @@ def exportar_relatorio_excel():
         except Exception:
             data_req_dt = None
 
-        # Aplicação do Filtro por Data
         if data_inicio and data_req_dt and data_req_dt < data_inicio:
             continue
         if data_fim and data_req_dt and data_req_dt > data_fim:
             continue
 
-        # Garante a leitura dos itens da requisição
         itens = req.get('itens', [])
         
-        # Mapeamento do Status para o Excel
         status_traduzido = req.get('status', '').capitalize()
         if status_traduzido.lower() == 'concluida':
             status_traduzido = 'Concluída'
 
         categoria_traduzida = 'EPI' if req.get('categoria') == 'epi' else 'Escritório'
 
-        # Se houver itens na requisição, gera uma linha por item
         if itens:
             for item in itens:
                 linhas_relatorio.append({
                     'ID Requisição': req.get('id'),
-    'Data Solicitação': req.get('data'),
-    'Status': status_traduzido,
-    'Tipo/Categoria': categoria_traduzida,
-    'Nota Fiscal': req.get('nota_fiscal', '-'),
-    'Solicitante': req.get('nome'),
-    'Registro': req.get('registro'),
-    'Departamento': req.get('departamento'),
-    'Código Material': item.get('codigo', '-'),
-    'Descrição Material': item.get('nome') or item.get('descricao', '-'),
-    'Qtd Solicitada': item.get('quantidade_solicitada', item.get('quantidade', 0)),
-    'Qtd Separada': item.get('quantidade_separada', item.get('quantidade', 0)),
-    'Separado Por': req.get('separado_por', '-'),
-    'Finalizado Por': req.get('finalizado_por', '-'),
-    'Data Conclusão/Retirada': req.get('data_conclusao') or req.get('data_retirada') or '-'
-})
+                    'Data Solicitação': req.get('data'),
+                    'Status': status_traduzido,
+                    'Tipo/Categoria': categoria_traduzida,
+                    'Nota Fiscal': req.get('nota_fiscal', '-'),
+                    'Solicitante': req.get('nome'),
+                    'Registro': req.get('registro'),
+                    'Departamento': req.get('departamento'),
+                    'Código Material': item.get('codigo', '-'),
+                    'Descrição Material': item.get('nome') or item.get('descricao', '-'),
+                    'Qtd Solicitada': item.get('quantidade_solicitada', item.get('quantidade', 0)),
+                    'Qtd Separada': item.get('quantidade_separada', item.get('quantidade', 0)),
+                    'Separado Por': req.get('separado_por', '-'),
+                    'Finalizado Por': req.get('finalizado_por', '-'),
+                    'Data Conclusão/Retirada': req.get('data_conclusao') or req.get('data_retirada') or '-'
+                })
         else:
-            # Caso a requisição não possua itens especificados
             linhas_relatorio.append({
                 'ID Requisição': req.get('id'),
                 'Data Solicitação': req.get('data'),
@@ -635,7 +898,6 @@ def exportar_relatorio_excel():
         flash('Nenhuma requisição encontrada para o período selecionado.', 'warning')
         return redirect(url_for('historico'))
 
-    # Gera a planilha usando a biblioteca Pandas
     df = pd.DataFrame(linhas_relatorio)
     
     output = io.BytesIO()
@@ -652,6 +914,9 @@ def exportar_relatorio_excel():
         download_name=nome_arquivo
     )
 
+
+# --- GERENCIAMENTO DE USUÁRIOS, MATERIAIS E DEPARTAMENTOS ---
+
 @app.route('/gerenciar_usuarios', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -667,7 +932,6 @@ def gerenciar_usuarios():
             departamentos.append({'nome': str(d)})
     
     if request.method == 'POST':
-        # Edição rápida de permissão de EPI
         if 'acao_editar_epi' in request.form:
             reg_target = str(request.form.get('registro_target')).strip()
             status_epi = request.form.get('pode_solicitar_epi') == 'true'
@@ -682,7 +946,6 @@ def gerenciar_usuarios():
             flash('Permissão de EPI atualizada com sucesso!', 'success')
             return redirect(url_for('gerenciar_usuarios'))
 
-        # Cadastro de Novo Usuário (Nome de Usuário + Registro)
         username = str(request.form.get('username', '')).strip().lower()
         registro = str(request.form.get('registro', '')).strip()
         nome = request.form.get('nome', '').strip()
@@ -692,7 +955,6 @@ def gerenciar_usuarios():
         pode_solicitar_epi = 'pode_solicitar_epi' in request.form
         senha_inicial = "Mudar123@"
 
-        # Verifica se já existe um usuário com este username ou registro
         if any(str(u.get('username', '')).strip().lower() == username for u in usuarios):
             flash('Nome de usuário já cadastrado! Escolha outro.', 'danger')
         elif any(str(u.get('registro', '')).strip() == registro for u in usuarios):
@@ -716,6 +978,7 @@ def gerenciar_usuarios():
 
     return render_template('gerenciar_usuarios.html', usuarios=usuarios, departamentos=departamentos)
 
+
 @app.route('/resetar_senha/<registro>', methods=['POST'])
 @login_required
 @admin_required
@@ -733,6 +996,7 @@ def resetar_senha(registro):
     salvar_usuarios(usuarios)
     flash(f'A senha do usuário {registro} foi resetada para "{senha_padrao}".', 'success')
     return redirect(url_for('gerenciar_usuarios'))
+
 
 @app.route('/excluir_usuario', methods=['POST'])
 @login_required
@@ -755,20 +1019,32 @@ def excluir_usuario():
     flash('Usuário excluído com sucesso.', 'success')
     return redirect(url_for('gerenciar_usuarios'))
 
+
 @app.route('/gerenciar_materiais_escritorio', methods=['GET', 'POST'])
 @login_required
 @gestor_required
 def gerenciar_materiais_escritorio():
     if request.method == 'POST':
-        codigo = request.form.get('codigo')
-        descricao = request.form.get('descricao')
-        quantidade_maxima = request.form.get('quantidade_maxima')
+        codigo = request.form.get('codigo', '').strip()
+        descricao = request.form.get('descricao', '').strip()
+        estoque_minimo = request.form.get('estoque_minimo', '0')
+
+        try:
+            est_min = int(estoque_minimo)
+        except ValueError:
+            est_min = 0
 
         materiais = carregar_materiais()
+        
+        if any(str(m['codigo']).strip() == codigo for m in materiais if m.get('categoria', 'escritorio') == 'escritorio'):
+            flash('Código de material de escritório já cadastrado!', 'danger')
+            return redirect(url_for('gerenciar_materiais_escritorio'))
+
         novo_material = {
             "codigo": codigo,
             "descricao": descricao,
-            "quantidade_maxima": int(quantidade_maxima),
+            "estoque_minimo": est_min,
+            "saldo": 0,
             "categoria": "escritorio"
         }
         materiais.append(novo_material)
@@ -779,7 +1055,6 @@ def gerenciar_materiais_escritorio():
     materiais = carregar_materiais()
     materiais_escritorio = [m for m in materiais if m.get('categoria', 'escritorio') == 'escritorio']
     return render_template('gerenciar_materiais_escritorio.html', materiais=materiais_escritorio)
-
 @app.route('/gerenciar_materiais_epi', methods=['GET', 'POST'])
 @login_required
 @gestor_required
@@ -805,6 +1080,7 @@ def gerenciar_materiais_epi():
     materiais_epi = [m for m in materiais if m.get('categoria') == 'epi']
     return render_template('gerenciar_materiais_epi.html', materiais=materiais_epi)
 
+
 @app.route('/excluir_material', methods=['POST'])
 @login_required
 @gestor_required
@@ -817,23 +1093,29 @@ def excluir_material():
     flash('Material excluído com sucesso!', 'success')
     return redirect(request.referrer or url_for('gerenciar_materiais_escritorio'))
 
+
 @app.route('/editar_material/<codigo_material>', methods=['GET', 'POST'])
 @login_required
 @gestor_required
 def editar_material(codigo_material):
     materiais = carregar_materiais()
-    material = next((m for m in materiais if m['codigo'] == codigo_material), None)
+    material = next((m for m in materiais if str(m['codigo']) == str(codigo_material)), None)
 
     if not material:
         flash('Material não encontrado.', 'danger')
         return redirect(url_for('gerenciar_materiais_escritorio'))
 
     if request.method == 'POST':
-        nova_descricao = request.form.get('descricao')
-        nova_quantidade_maxima = request.form.get('quantidade_maxima')
+        nova_descricao = request.form.get('descricao', '').strip()
+        est_min_raw = request.form.get('estoque_minimo', '0')
+
+        try:
+            novo_est_min = int(est_min_raw)
+        except ValueError:
+            novo_est_min = 0
 
         material['descricao'] = nova_descricao
-        material['quantidade_maxima'] = int(nova_quantidade_maxima)
+        material['estoque_minimo'] = novo_est_min
 
         salvar_materiais(materiais)
         flash('Material atualizado com sucesso!', 'success')
@@ -864,6 +1146,7 @@ def gerenciar_departamentos():
     departamentos = carregar_departamentos()
     return render_template('gerenciar_departamentos.html', departamentos=departamentos)
 
+
 @app.route('/excluir_departamento', methods=['POST'])
 @login_required
 @admin_required
@@ -877,6 +1160,7 @@ def excluir_departamento():
         flash(f'Departamento "{nome_excluir}" removido.', 'success')
 
     return redirect(url_for('gerenciar_departamentos'))
+
 
 @app.route('/requisicao/<int:requisicao_id>')
 @login_required
@@ -900,6 +1184,7 @@ def ver_requisicao(requisicao_id):
         return redirect(url_for('historico'))
 
     return render_template('ver_requisicao.html', requisicao=requisicao)
+
 
 @app.route('/importar_materiais_csv', methods=['POST'])
 @login_required
@@ -1011,6 +1296,7 @@ def importar_materiais_csv():
         flash(f'Erro ao processar o arquivo: {str(e)}', 'danger')
 
     return redirect(request.referrer or url_for('gerenciar_materiais_escritorio'))
+
 
 if __name__ == '__main__':
     app.run(debug=True)

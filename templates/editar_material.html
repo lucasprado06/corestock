@@ -3,23 +3,58 @@
 {% block title %}Editar Material - CoreStock{% endblock %}
 
 {% block content %}
-<div style="max-width: 500px; margin: 30px auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-    <h2>Editar Material</h2>
+<div style="max-width: 500px; margin: 40px auto; background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #cbd5e1;">
+    <h2 style="margin-top: 0; color: #0a2540; font-size: 1.5em; margin-bottom: 20px;">Editar Material</h2>
+
     <form action="{{ url_for('editar_material', codigo_material=material.codigo) }}" method="POST">
-        <div class="form-group" style="margin-bottom: 15px;">
-            <label>Código (não alterável):</label>
-            <input type="text" value="{{ material.codigo }}" class="form-control" disabled style="width: 100%; padding: 8px;">
+        <div style="margin-bottom: 16px;">
+            <label style="display: block; font-weight: 600; color: #334155; font-size: 13.5px; margin-bottom: 6px;">
+                Código (não alterável):
+            </label>
+            <input type="text" 
+                   value="{{ material.codigo }}" 
+                   disabled 
+                   style="width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; background-color: #f8fafc; color: #64748b; font-weight: 600; box-sizing: border-radius;">
         </div>
-        <div class="form-group" style="margin-bottom: 15px;">
-            <label for="descricao">Descrição do Material:</label>
-            <input type="text" id="descricao" name="descricao" value="{{ material.descricao }}" required style="width: 100%; padding: 8px;">
+
+        <div style="margin-bottom: 16px;">
+            <label for="descricao" style="display: block; font-weight: 600; color: #334155; font-size: 13.5px; margin-bottom: 6px;">
+                Descrição do Material:
+            </label>
+            <input type="text" 
+                   id="descricao" 
+                   name="descricao" 
+                   value="{{ material.descricao }}" 
+                   required 
+                   style="width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; color: #1e293b; box-sizing: border-box; outline: none;">
         </div>
-        <div class="form-group" style="margin-bottom: 20px;">
-            <label for="quantidade_maxima">Quantidade Máxima por Requisição:</label>
-            <input type="number" id="quantidade_maxima" name="quantidade_maxima" value="{{ material.quantidade_maxima }}" required style="width: 100%; padding: 8px;">
+
+        <div style="margin-bottom: 24px;">
+            <label for="estoque_minimo" style="display: block; font-weight: 600; color: #334155; font-size: 13.5px; margin-bottom: 6px;">
+                Estoque Mínimo (Alerta de Reposição):
+            </label>
+            <input type="number" 
+                   id="estoque_minimo" 
+                   name="estoque_minimo" 
+                   value="{{ material.estoque_minimo if material.estoque_minimo is defined else material.quantidade_maxima or 0 }}" 
+                   min="0" 
+                   required 
+                   style="width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; color: #1e293b; box-sizing: border-box; outline: none;">
+            <small style="display: block; color: #64748b; margin-top: 4px; font-size: 12px;">
+                O sistema emitirá o alerta "🟡 Estoque Baixo" sempre que o saldo for menor ou igual a esse número.
+            </small>
         </div>
-        <button type="submit" style="background-color: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer;">Salvar Alterações</button>
-        <a href="{{ request.referrer or url_for('gerenciar_materiais_escritorio') }}" style="margin-left: 10px;">Cancelar</a>
+
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <button type="submit" 
+                    style="background-color: #16a34a; color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; transition: background 0.2s;">
+                Salvar Alterações
+            </button>
+            <a href="{% if material.categoria == 'epi' %}{{ url_for('gerenciar_materiais_epi') }}{% else %}{{ url_for('gerenciar_materiais_escritorio') }}{% endif %}" 
+               style="color: #64748b; text-decoration: underline; font-size: 14px; font-weight: 500;">
+                Cancelar
+            </a>
+        </div>
     </form>
 </div>
 {% endblock %}

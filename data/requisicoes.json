@@ -227,38 +227,26 @@
         "finalizado_por": "teste admin"
     },
     {
-        "id": 12,
-        "nome": "Lucas Prado",
-        "registro": "7431",
-        "departamento": "Log\u00edstica",
-        "categoria": "escritorio",
-        "data": "02/09/2026 21:44",
-        "status": "pendente",
-        "itens": [
-            {
-                "codigo": "2019",
-                "nome": "Manga de Protecao em Raspa para Braco",
-                "quantidade": 1
-            }
-        ]
-    },
-    {
         "id": 13,
         "nome": "Lucas Prado",
         "registro": "7431",
         "departamento": "Log\u00edstica",
         "categoria": "escritorio",
         "data": "02/09/2026 21:44",
-        "status": "separado",
+        "status": "concluida",
         "itens": [
             {
                 "codigo": "12095-050",
                 "nome": "luvex",
-                "quantidade": 1
+                "quantidade": 1,
+                "quantidade_solicitada": 1,
+                "quantidade_separada": 1
             }
         ],
-        "data_retirada": "02/09/2026 21:45",
-        "separado_por": "Lucas Prado"
+        "data_retirada": "03/09/2026 20:25",
+        "separado_por": "Lucas Prado",
+        "data_conclusao": "03/09/2026 20:27",
+        "finalizado_por": "Lucas Prado"
     },
     {
         "id": 14,
@@ -267,14 +255,20 @@
         "departamento": "Log\u00edstica",
         "categoria": "epi",
         "data": "02/09/2026 21:44",
-        "status": "pendente",
+        "status": "concluida",
         "itens": [
             {
                 "codigo": "2015",
                 "nome": "Avental de Raspa de Couro para Soldador",
-                "quantidade": 1
+                "quantidade": 1,
+                "quantidade_solicitada": 1,
+                "quantidade_separada": 1
             }
-        ]
+        ],
+        "data_retirada": "03/09/2026 20:26",
+        "separado_por": "Lucas Prado",
+        "data_conclusao": "03/09/2026 20:27",
+        "finalizado_por": "Lucas Prado"
     },
     {
         "id": 15,
@@ -283,54 +277,70 @@
         "departamento": "Log\u00edstica",
         "categoria": "escritorio",
         "data": "02/09/2026 21:58",
-        "status": "pendente",
+        "status": "concluida",
         "itens": [
             {
                 "codigo": "12095-050",
                 "nome": "luvex",
                 "quantidade": 1,
                 "quantidade_solicitada": 1,
-                "quantidade_separada": 1
+                "quantidade_separada": 0
             }
-        ]
+        ],
+        "data_retirada": "03/09/2026 20:24",
+        "separado_por": "Lucas Prado",
+        "data_conclusao": "03/09/2026 20:27",
+        "finalizado_por": "Lucas Prado"
     },
     {
         "id": 16,
         "nome": "Lucas Prado",
+        "username": "lucas.prado",
         "registro": "7431",
         "departamento": "Log\u00edstica",
-        "categoria": "escritorio",
-        "data": "02/09/2026 21:58",
-        "status": "pendente",
+        "categoria": "epi",
+        "data": "03/09/2026 20:41",
+        "status": "concluida",
         "itens": [
             {
-                "codigo": "12095-050",
-                "nome": "luvex",
-                "quantidade": 1,
-                "quantidade_solicitada": 1,
-                "quantidade_separada": 1
+                "codigo": "564651",
+                "nome": "Protetor",
+                "quantidade": 12,
+                "quantidade_solicitada": 12,
+                "quantidade_separada": 12
             }
-        ]
+        ],
+        "nota_fiscal": "NF 12587",
+        "nota_fiscal_transferencia": "NF 12587",
+        "data_retirada": "03/09/2026 20:45",
+        "separado_por": "Lucas Prado",
+        "data_conclusao": "03/09/2026 20:45",
+        "finalizado_por": "Lucas Prado"
     },
     {
         "id": 17,
         "nome": "Lucas Prado",
+        "username": "lucas.prado",
         "registro": "7431",
         "departamento": "Log\u00edstica",
         "categoria": "epi",
-        "data": "02/09/2026 22:01",
-        "status": "separado",
+        "data": "03/09/2026 20:44",
+        "status": "concluida",
+        "nota_fiscal": "Nf154889",
         "itens": [
             {
-                "codigo": "2017",
-                "nome": "Colete Refletivo de Alta Visibilidade Tam G",
-                "quantidade": 8,
-                "quantidade_solicitada": 8,
-                "quantidade_separada": 4
+                "codigo": "564651",
+                "nome": "Protetor",
+                "quantidade": 2,
+                "quantidade_solicitada": 2,
+                "quantidade_separada": 2
             }
         ],
-        "data_retirada": "02/09/2026 22:02",
-        "separado_por": "Lucas Prado"
+        "nota_fiscal_transferencia": "Nf154889",
+        "data_retirada": "03/09/2026 20:45",
+        "separado_por": "Lucas Prado",
+        "data_conclusao": "03/09/2026 20:48",
+        "finalizado_por": "Lucas Prado"
     },
     {
         "id": 18,
@@ -339,35 +349,218 @@
         "registro": "7431",
         "departamento": "Log\u00edstica",
         "categoria": "escritorio",
-        "data": "02/09/2026 22:03",
-        "status": "pendente",
+        "data": "03/09/2026 21:06",
+        "status": "concluida",
+        "nota_fiscal": "-",
         "itens": [
             {
-                "codigo": "12095-050",
-                "nome": "lapis",
-                "quantidade": 5,
-                "quantidade_solicitada": 5,
-                "quantidade_separada": 5
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 1,
+                "quantidade_solicitada": 1,
+                "quantidade_separada": 1
             }
-        ]
+        ],
+        "data_retirada": "03/09/2026 21:09",
+        "separado_por": "Lucas Prado",
+        "data_conclusao": "03/09/2026 21:12",
+        "finalizado_por": "Lucas Prado"
     },
     {
         "id": 19,
+        "nome": "MAF Porto Real",
+        "username": "7585",
+        "registro": "7585",
+        "departamento": "MAF Porto Real",
+        "categoria": "escritorio",
+        "data": "03/09/2026 21:07",
+        "status": "concluida",
+        "nota_fiscal": "-",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 1,
+                "quantidade_solicitada": 1,
+                "quantidade_separada": 1
+            }
+        ],
+        "data_retirada": "03/09/2026 21:11",
+        "separado_por": "Lucas Prado",
+        "data_conclusao": "03/09/2026 21:12",
+        "finalizado_por": "Lucas Prado"
+    },
+    {
+        "id": 20,
+        "nome": "MAF Porto Real",
+        "username": "7585",
+        "registro": "7585",
+        "departamento": "MAF Porto Real",
+        "categoria": "epi",
+        "data": "03/09/2026 21:08",
+        "status": "concluida",
+        "nota_fiscal": "-15151",
+        "itens": [
+            {
+                "codigo": "2017",
+                "nome": "Colete Refletivo de Alta Visibilidade Tam G",
+                "quantidade": 1,
+                "quantidade_solicitada": 1,
+                "quantidade_separada": 1
+            }
+        ],
+        "data_retirada": "03/09/2026 21:11",
+        "separado_por": "Lucas Prado",
+        "data_conclusao": "03/09/2026 21:13",
+        "finalizado_por": "Lucas Prado"
+    },
+    {
+        "id": 21,
         "nome": "Lucas Prado",
         "username": "lucas.prado",
         "registro": "7431",
         "departamento": "Log\u00edstica",
         "categoria": "escritorio",
-        "data": "02/09/2026 22:09",
-        "status": "pendente",
+        "data": "03/09/2026 21:11",
+        "status": "concluida",
+        "nota_fiscal": "-",
         "itens": [
             {
                 "codigo": "25154",
                 "nome": "caneta",
-                "quantidade": 20,
-                "quantidade_solicitada": 20,
-                "quantidade_separada": 20
+                "quantidade": 1,
+                "quantidade_solicitada": 1,
+                "quantidade_separada": 1
             }
-        ]
+        ],
+        "data_retirada": "03/09/2026 21:11",
+        "separado_por": "Lucas Prado",
+        "data_conclusao": "03/09/2026 21:13",
+        "finalizado_por": "Lucas Prado"
+    },
+    {
+        "id": 22,
+        "nome": "Lucas Prado",
+        "username": "lucas.prado",
+        "registro": "7431",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "data": "03/09/2026 21:15",
+        "status": "concluida",
+        "nota_fiscal": "-",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 1,
+                "quantidade_solicitada": 1,
+                "quantidade_separada": 1
+            }
+        ],
+        "nota_fiscal_transferencia": "-",
+        "data_retirada": "03/09/2026 21:15",
+        "separado_por": "Lucas Prado",
+        "data_conclusao": "03/09/2026 21:15",
+        "finalizado_por": "Lucas Prado"
+    },
+    {
+        "id": 23,
+        "nome": "Lucas Prado",
+        "username": "lucas.prado",
+        "registro": "7431",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "data": "03/09/2026 21:16",
+        "status": "concluida",
+        "nota_fiscal": "-",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 1,
+                "quantidade_solicitada": 1,
+                "quantidade_separada": 1
+            }
+        ],
+        "nota_fiscal_transferencia": "-",
+        "data_retirada": "03/09/2026 21:16",
+        "separado_por": "Lucas Prado",
+        "data_conclusao": "03/09/2026 21:16",
+        "finalizado_por": "Lucas Prado"
+    },
+    {
+        "id": 24,
+        "nome": "Lucas Prado",
+        "username": "lucas.prado",
+        "registro": "7431",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "data": "03/09/2026 21:17",
+        "status": "concluida",
+        "nota_fiscal": "-",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 1,
+                "quantidade_solicitada": 1,
+                "quantidade_separada": 1
+            }
+        ],
+        "nota_fiscal_transferencia": "-",
+        "data_retirada": "03/09/2026 21:17",
+        "separado_por": "Lucas Prado",
+        "data_conclusao": "03/09/2026 21:18",
+        "finalizado_por": "Lucas Prado"
+    },
+    {
+        "id": 25,
+        "nome": "Lucas Prado",
+        "username": "lucas.prado",
+        "registro": "7431",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "data": "03/09/2026 21:19",
+        "status": "concluida",
+        "nota_fiscal": "-",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 1,
+                "quantidade_solicitada": 1,
+                "quantidade_separada": 1
+            }
+        ],
+        "nota_fiscal_transferencia": "-",
+        "data_retirada": "03/09/2026 21:19",
+        "separado_por": "Lucas Prado",
+        "data_conclusao": "03/09/2026 21:20",
+        "finalizado_por": "Lucas Prado"
+    },
+    {
+        "id": 26,
+        "nome": "Lucas Prado",
+        "username": "lucas.prado",
+        "registro": "7431",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "data": "03/09/2026 21:23",
+        "status": "concluida",
+        "nota_fiscal": "-",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 1,
+                "quantidade_solicitada": 1,
+                "quantidade_separada": 1
+            }
+        ],
+        "nota_fiscal_transferencia": "-",
+        "data_retirada": "03/09/2026 21:23",
+        "separado_por": "Lucas Prado",
+        "data_conclusao": "03/09/2026 21:23",
+        "finalizado_por": "Lucas Prado"
     }
 ]

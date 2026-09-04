@@ -67,7 +67,7 @@
             <h3 class="modal-title">Lançamento de Nota Fiscal (EPI)</h3>
             <p class="modal-subtitle">Informe o número da NF de Transferência e confirme com a sua senha.</p>
             
-            <form action="{{ url_for('finalizar_requisicao') }}" method="post">
+            <form action="{{ url_for('concluir_requisicao') }}" method="post">
                 <input type="hidden" name="requisicao_id" id="modal_epi_requisicao_id">
                 
                 <div class="form-group-modal">
@@ -94,7 +94,7 @@
             <h3 class="modal-title">Autenticação do Solicitante</h3>
             <p class="modal-subtitle">Confirme a matrícula e a senha do solicitante para concluir a entrega presencial.</p>
             
-            <form action="{{ url_for('finalizar_requisicao') }}" method="post">
+            <form action="{{ url_for('concluir_requisicao') }}" method="post">
                 <input type="hidden" name="requisicao_id" id="modal_solic_requisicao_id">
                 
                 <div class="form-group-modal">
