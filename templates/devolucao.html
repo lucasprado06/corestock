@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block title %}Devolução de Material - CoreStock{% endblock %}
+
+{% block content %}
+    <h1 class="page-title">Devolução de Material</h1>
+
+    <form action="{{ url_for('enviar_requisicao') }}" method="post" class="form-container form-devolucao">
+        
+        <input type="hidden" name="categoria_solicitacao" value="escritorio">
+        <input type="hidden" name="tipo_requisicao" value="devolucao">
+        
+        <h3 class="form-title title-devolucao">
+            Devolução de Material de Escritório
+        </h3>
+
+        <div class="alert-info-devolucao">
+            ℹ️ Selecione os itens de escritório que estão retornando ao estoque. Após a conferência do almoxarifado, o saldo destes materiais será incrementado.
+        </div>
+
+        <!-- Lista de Itens -->
+        <div id="itens-container">
+            <!-- Primeiro item (obrigatório) -->
+            <div class="item-linha" id="item-0">
+                <select name="materiais[0][codigo]" id="select-0" required class="input-select">
+                    <option value="" disabled selected>Selecione o material para devolução</option>
+                    {% for m in materiais %}
+                        <option value="{{ m.codigo }}">{{ m.descricao }}</option>
+                    {% endfor %}
+                </select>
+
+                <input type="number" name="materiais[0][quantidade]" id="qtd-0" placeholder="Qtd" min="1" required class="input-qtd">
+                
+                <div class="spacer-btn"></div>
+            </div>
+        </div>
+
+        <button type="button" class="btn-secondary" onclick="adicionarItem()">
+            + Adicionar Mais um Item
+        </button>
+
+        <br>
+
+        <button type="submit" class="btn-submit btn-devolucao">
+            Confirmar Devolução
+        </button>
+    </form>
+
+    <style>
+        .page-title {
+            text-align: center;
+            color: #0a2540;
+            margin-bottom: 25px;
+        }
+
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            background-color: #f8fafc;
+            border-top: 4px solid #16a34a;
+        }
+
+        .form-title {
+            margin-top: 0;
+            margin-bottom: 15px;
+            text-align: center;
+            color: #16a34a;
+            font-size: 1.25em;
+        }
+
+        .alert-info-devolucao {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #15803d;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .item-linha {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+
+        .input-select {
+            flex: 2;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background: #fff;
+            font-size: 14px;
+        }
+
+        .input-qtd {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background: #fff;
+            font-size: 14px;
+        }
+
+        .spacer-btn {
+            width: 38px;
+        }
+
+        .btn-secondary {
+            margin-bottom: 20px;
+            background-color: #64748b;
+            color: white;
+            border: none;
+            padding: 9px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-devolucao {
+            background-color: #16a34a;
+            transition: background-color 0.2s;
+        }
+
+        .btn-devolucao:hover {
+            background-color: #15803d;
+        }
+
+        .btn-remove {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+
+    <script>
+        let itemIndex = 1;
+
+        function adicionarItem() {
+            const container = document.getElementById('itens-container');
+            const currentIndex = itemIndex;
+            
+            const novaLinha = document.createElement('div');
+            novaLinha.className = 'item-linha';
+            novaLinha.id = `item-${currentIndex}`;
+
+            novaLinha.innerHTML = `
+                <select name="materiais[${currentIndex}][codigo]" id="select-${currentIndex}" required class="input-select">
+                    <option value="" disabled selected>Selecione o material para devolução</option>
+                    {% for m in materiais %}
+                        <option value="{{ m.codigo }}">{{ m.descricao }}</option>
+                    {% endfor %}
+                </select>
+
+                <input type="number" name="materiais[${currentIndex}][quantidade]" id="qtd-${currentIndex}" placeholder="Qtd" min="1" required class="input-qtd">
+
+                <button type="button" onclick="removerItem('item-${currentIndex}')" class="btn-remove">
+                    ✕
+                </button>
+            `;
+
+            container.appendChild(novaLinha);
+            itemIndex++;
+        }
+
+        function removerItem(idLinha) {
+            const linha = document.getElementById(idLinha);
+            if (linha) {
+                linha.remove();
+            }
+        }
+    </script>
+{% endblock %}

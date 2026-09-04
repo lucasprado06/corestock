@@ -16,7 +16,28 @@
         </div>
     </div>
 
-    <!-- Barra de Filtro e Busca -->
+    <!-- Card de Filtro por Período e Exportação em Excel -->
+    <div class="filter-card">
+        <form action="{{ url_for('exportar_movimentacoes_excel') }}" method="post" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+            <div>
+                <label for="data_inicio" style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 5px;">Data Início:</label>
+                <input type="date" id="data_inicio" name="data_inicio" class="input-date">
+            </div>
+
+            <div>
+                <label for="data_fim" style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 5px;">Data Fim:</label>
+                <input type="date" id="data_fim" name="data_fim" class="input-date">
+            </div>
+
+            <div>
+                <button type="submit" class="btn-excel">
+                    📊 Exportar para Excel (.xlsx)
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Barra de Filtro e Busca Rápida -->
     <div class="filter-bar">
         <div class="search-box">
             <span class="search-icon">🔍</span>
@@ -38,20 +59,22 @@
                 <th style="width: 140px;">Data / Hora</th>
                 <th style="width: 120px;">Part Number</th>
                 <th>Material</th>
-                <th style="width: 170px; text-align: center;">Tipo de Movimentação</th>
-                <th style="width: 80px; text-align: center;">Qtd.</th>
-                <th style="width: 120px; text-align: center;">Nota Fiscal</th>
+                <th style="width: 160px; text-align: center;">Tipo de Movimentação</th>
+                <th style="width: 70px; text-align: center;">Qtd.</th>
+                <th style="width: 110px; text-align: center;">Nota Fiscal</th>
+                <th style="width: 110px; text-align: center;">Nº Requisição</th>
                 <th>Motivo / Observação</th>
-                <th style="width: 130px;">Responsável</th>
+                <th style="width: 120px;">Responsável</th>
             </tr>
         </thead>
         <tbody>
             {% for mov in movimentacoes %}
-            {% set tipo_lower = mov.tipo | lower %}
+            {% set tipo_lower = (mov.tipo or '') | lower %}
+            {% set req_num = mov.requisicao_id or mov.req_id %}
             <tr data-tipo="{{ mov.tipo }}">
-                <td><small style="color: #64748b; font-weight: 600;">{{ mov.data }}</small></td>
-                <td><code>{{ mov.codigo_material }}</code></td>
-                <td><strong>{{ mov.descricao_material }}</strong></td>
+                <td><small style="color: #64748b; font-weight: 600;">{{ mov.data or '-' }}</small></td>
+                <td><code>{{ mov.codigo_material or mov.codigo or '-' }}</code></td>
+                <td><strong>{{ mov.descricao_material or mov.descricao or '-' }}</strong></td>
                 <td style="text-align: center;">
                     {% if 'entrada' in tipo_lower %}
                         <span class="text-tipo text-entrada">{{ mov.tipo }}</span>
@@ -63,9 +86,11 @@
                 </td>
                 <td style="text-align: center;">
                     <strong class="{% if 'entrada' in tipo_lower %}qtd-positiva{% else %}qtd-negativa{% endif %}">
-                        {% if 'entrada' in tipo_lower %}+{% else %}-{% endif %}{{ mov.quantidade }}
+                        {% if 'entrada' in tipo_lower %}+{% else %}-{% endif %}{{ mov.quantidade or 0 }}
                     </strong>
                 </td>
+                
+                <!-- Coluna Nota Fiscal -->
                 <td style="text-align: center;">
                     {% if mov.nota_fiscal and mov.nota_fiscal != '-' %}
                         <span class="nf-tag">{{ mov.nota_fiscal }}</span>
@@ -73,18 +98,31 @@
                         <span style="color: #94a3b8;">-</span>
                     {% endif %}
                 </td>
+
+                <!-- Coluna Número da Requisição -->
+                <td style="text-align: center;">
+                    {% if req_num and req_num != '-' %}
+                        <a href="{{ url_for('ver_requisicao', requisicao_id=req_num) }}" class="req-link">
+                            {{ req_num }}
+                        </a>
+                    {% else %}
+                        <span style="color: #94a3b8;">-</span>
+                    {% endif %}
+                </td>
+
                 <td style="color: #334155; font-size: 13.5px;">
-                    {% if mov.requisicao_id %}
-                        Baixa da Requisição <a href="{{ url_for('ver_requisicao', requisicao_id=mov.requisicao_id) }}" style="color: #0284c7; font-weight: bold; text-decoration: none;">({{ mov.requisicao_id }})</a>
+                    {% if req_num and req_num != '-' %}
+                        Baixa por Requisição <a href="{{ url_for('ver_requisicao', requisicao_id=req_num) }}" style="color: #0284c7; font-weight: bold; text-decoration: none;"></a>
                     {% else %}
                         {{ mov.motivo or '-' }}
                     {% endif %}
                 </td>
-                <td><span style="font-size: 13px; font-weight: 600; color: #475569;">{{ mov.usuario }}</span></td>
+
+                <td><span style="font-size: 13px; font-weight: 600; color: #475569;">{{ mov.usuario or '-' }}</span></td>
             </tr>
             {% else %}
             <tr>
-                <td colspan="8" style="text-align: center; color: #64748b; padding: 25px;">
+                <td colspan="9" style="text-align: center; color: #64748b; padding: 25px;">
                     Nenhuma movimentação registrada no histórico.
                 </td>
             </tr>
@@ -97,6 +135,47 @@
     </p>
 
     <style>
+        .filter-card {
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .input-date {
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            color: #334155;
+            background-color: #ffffff;
+        }
+
+        .input-date:focus {
+            border-color: #0284c7;
+        }
+
+        .btn-excel {
+            background-color: #16a34a;
+            color: white;
+            border: none;
+            padding: 9px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13.5px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-excel:hover {
+            background-color: #15803d;
+        }
+
         .btn-primary-action {
             background-color: #0284c7;
             color: #ffffff;
@@ -229,7 +308,6 @@
             color: #0a2540;
         }
 
-        /* Estilo Texto Colorido Sem Fundo Plástico */
         .text-tipo {
             font-size: 13px;
             font-weight: 700;
@@ -244,13 +322,28 @@
         .qtd-negativa { color: #dc2626; font-size: 15px; }
 
         .nf-tag {
-            background-color: #f1f5f9;
-            border: 1px solid #cbd5e1;
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
             padding: 2px 8px;
             border-radius: 4px;
             font-size: 12px;
-            font-weight: 600;
-            color: #334155;
+            font-weight: 700;
+            color: #0369a1;
+        }
+
+        .req-link {
+            color: #0284c7;
+            font-weight: 700;
+            text-decoration: none;
+            background-color: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+        }
+
+        .req-link:hover {
+            background-color: #e2e8f0;
+            color: #0369a1;
         }
     </style>
 

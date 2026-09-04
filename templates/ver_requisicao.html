@@ -5,9 +5,24 @@
 {% block content %}
     <div class="requisicao-card" id="area-impressao">
         <div class="card-header">
-            <h2>Requisição #{{ requisicao.id }}</h2>
+            <div>
+                <h2>
+                    Requisição #{{ requisicao.id }}
+                    {% if requisicao.tipo_requisicao == 'devolucao' %}
+                        <span class="badge-devolucao">↩️ DEVOLUÇÃO</span>
+                    {% endif %}
+                </h2>
+            </div>
             <span class="status-badge status-{{ requisicao.status }}">{{ requisicao.status | upper }}</span>
         </div>
+
+        <!-- Alerta quando a Requisição for do tipo DEVOLUÇÃO -->
+        {% if requisicao.tipo_requisicao == 'devolucao' %}
+        <div class="alert-devolucao-box no-print">
+            <strong>↩️ REQUISIÇÃO DE DEVOLUÇÃO AO ESTOQUE</strong>
+            <p>Ao marcar como separado/conferido, a quantidade de cada item será <strong>ADICIONADA</strong> diretamente ao saldo disponível no estoque.</p>
+        </div>
+        {% endif %}
 
         <div class="info-grid">
             <div class="info-item">
@@ -29,25 +44,38 @@
                 </span>
             </div>
             <div class="info-item">
+                <strong>Finalidade / Operação:</strong>
+                <span>
+                    {% if requisicao.tipo_requisicao == 'devolucao' %}
+                        <strong style="color: #16a34a;">Devolução de Material</strong>
+                    {% else %}
+                        Retirada / Consumo
+                    {% endif %}
+                </span>
+            </div>
+            <div class="info-item">
                 <strong>Data de Envio:</strong>
                 <span>{{ requisicao.data }}</span>
             </div>
 
             <div class="info-item">
                 <strong>Nota Fiscal de Transferência:</strong>
-                <span>{{ requisicao.nota_fiscal or requisicao.nota_fiscal_transferencia or 'Não informada / Não aplicável' }}</span>
+                <span>
+                    {% set nf_exibir = requisicao.nota_fiscal or requisicao.nota_fiscal_transferencia or '' %}
+                    {{ '-' if nf_exibir.strip() == '-' or not nf_exibir else nf_exibir }}
+                </span>
             </div>
 
             {% if requisicao.data_retirada %}
             <div class="info-item">
-                <strong>Data de Separação:</strong>
+                <strong>Data de Separação / Recebimento:</strong>
                 <span>{{ requisicao.data_retirada }}</span>
             </div>
             {% endif %}
 
             {% if requisicao.separado_por %}
             <div class="info-item">
-                <strong>Separado por:</strong>
+                <strong>Conferido / Separado por:</strong>
                 <span>{{ requisicao.separado_por }}</span>
             </div>
             {% endif %}
@@ -70,13 +98,15 @@
         {% set depto_lower = (requisicao.departamento or '') | lower %}
         {% set eh_maf = 'maf porto real' in depto_lower or 'maf betim' in depto_lower %}
 
-        <!-- Formulário da Separação e Despacho -->
+        <!-- Formulário de Separação / Recebimento e Despacho -->
         <form action="{{ url_for('concluir_requisicao') }}" method="POST" id="formSeparacao">
             <input type="hidden" name="requisicao_id" value="{{ requisicao.id }}">
-            <input type="hidden" name="acao_final" id="acao_final" value="{% if eh_maf and requisicao.status == 'pendente' %}concluir_direto{% elif requisicao.status == 'pendente' %}separar{% else %}concluir{% endif %}">
+            <input type="hidden" name="acao_final" id="acao_final" value="{% if requisicao.status == 'pendente' %}separar{% elif eh_maf %}concluir_direto{% else %}concluir{% endif %}">
 
-            <!-- Campo de Nota Fiscal Obrigatório APENAS para MAF Porto Real e MAF Betim em aberto -->
-            {% if (requisicao.status == 'pendente' or requisicao.status == 'separado') and session.user.permissao in ['admin', 'administrador', 'abastecedor'] and eh_maf %}
+            <!-- Campo de Nota Fiscal exibido APENAS na fase de despacho (status 'separado') para MAF -->
+            {% if requisicao.status == 'separado' and session.user.permissao in ['admin', 'administrador', 'abastecedor'] and eh_maf %}
+            {% set nf_campo = requisicao.nota_fiscal or requisicao.nota_fiscal_transferencia or '' %}
+            {% set nf_valor = '' if nf_campo.strip() == '-' else nf_campo %}
             <div style="background-color: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 16px; margin-bottom: 20px;" class="no-print">
                 <label for="nota_fiscal" style="font-weight: 700; color: #0369a1; display: block; margin-bottom: 6px; font-size: 14px;">
                     📄 Número da Nota Fiscal (Transferência/Saída) <span style="color: #dc2626;">*</span>:
@@ -84,25 +114,34 @@
                 <input type="text" 
                        name="nota_fiscal" 
                        id="nota_fiscal" 
-                       value="{{ requisicao.nota_fiscal or requisicao.nota_fiscal_transferencia or '' }}" 
+                       value="{{ nf_valor }}" 
                        placeholder="Ex: NF-125874" 
                        required
                        style="padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; max-width: 320px; font-size: 14px; font-weight: 600; color: #0a2540;">
                 <small style="display: block; color: #0369a1; margin-top: 6px; font-size: 12px;">
-                    ⚠️ Campo obrigatório para solicitações do departamento <strong>{{ requisicao.departamento }}</strong>.
+                    ⚠️ Campo obrigatório para concluir a transferência do departamento <strong>{{ requisicao.departamento }}</strong>.
                 </small>
             </div>
             {% endif %}
 
-            <h3 class="section-title">Itens Solicitados</h3>
+            <h3 class="section-title">
+                Itens da Solicitação 
+                {% if requisicao.tipo_requisicao == 'devolucao' %}
+                    <small style="color: #16a34a; font-size: 13px;">(Quantidades a serem somadas ao estoque)</small>
+                {% endif %}
+            </h3>
 
             <table class="table-detalhes">
                 <thead>
                     <tr>
                         <th>Código</th>
                         <th>Descrição do Item</th>
-                        <th style="text-align: center; width: 130px;">Qtd. Solicitada</th>
-                        <th style="text-align: center; width: 150px;">Qtd. Separada</th>
+                        <th style="text-align: center; width: 130px;">
+                            {% if requisicao.tipo_requisicao == 'devolucao' %}Qtd. Informada{% else %}Qtd. Solicitada{% endif %}
+                        </th>
+                        <th style="text-align: center; width: 150px;">
+                            {% if requisicao.tipo_requisicao == 'devolucao' %}Qtd. Devolvida{% else %}Qtd. Separada{% endif %}
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -115,9 +154,9 @@
                         <td>
                             {{ item.nome or item.descricao }}
                             {% if qtd_sep == 0 %}
-                                <span class="tag-sem-estoque">(Sem Estoque / Não Entregue)</span>
+                                <span class="tag-sem-estoque">(Não Devolvido / Zerado)</span>
                             {% elif qtd_sep < qtd_sol %}
-                                <span class="tag-parcial">(Atendimento Parcial)</span>
+                                <span class="tag-parcial">(Devolução Parcial)</span>
                             {% endif %}
                         </td>
                         
@@ -147,21 +186,21 @@
                 </tbody>
             </table>
 
-            <!-- Modal de Autenticação APENAS para Solicitantes de outros departamentos -->
+            <!-- Modal de Autenticação APENAS para Solicitantes de outros departamentos na fase de Despacho -->
             {% if not eh_maf and requisicao.status == 'separado' %}
             <div id="modalAuthDespacho" class="modal-backdrop" style="display: none;">
                 <div class="modal-box">
                     <h3 style="margin-top: 0; color: #0a2540;">🔒 Autenticação do Solicitante</h3>
-                    <p style="font-size: 13.5px; color: #64748b;">Para assinar a entrega, o solicitante <strong>{{ requisicao.nome }}</strong> ({{ requisicao.registro }}) deve confirmar sua senha:</p>
+                    <p style="font-size: 13.5px; color: #64748b;">Informe o usuário e a senha do solicitante <strong>{{ requisicao.nome }}</strong> para assinar a entrega:</p>
                     
                     <div style="margin-bottom: 12px; text-align: left;">
-                        <label style="font-size: 12px; font-weight: bold; color: #334155;">Usuário ou Registro:</label>
+                        <label style="font-size: 12px; font-weight: bold; color: #334155;">Usuário do Solicitante:</label>
                         <input type="text" 
                                name="auth_usuario" 
                                id="auth_usuario" 
                                class="form-input" 
-                               value="{{ requisicao.username or requisicao.registro }}" 
-                               placeholder="Ex: {{ requisicao.registro }}">
+                               value="{{ requisicao.username or requisicao.usuario or '' }}" 
+                               placeholder="Ex: lucas.prado">
                     </div>
 
                     <div style="margin-bottom: 20px; text-align: left;">
@@ -194,20 +233,24 @@
                     </button>
 
                     {% if session.user.permissao in ['admin', 'administrador', 'abastecedor'] %}
-                        {% if eh_maf %}
-                            <!-- MAF: Processo direto em passo único -->
-                            <button type="button" class="btn btn-success-action" onclick="processarRequisicaoMAF();">
-                                📦 Finalizar e Despachar (MAF)
-                            </button>
-                        {% else %}
-                            <!-- Demais Departamentos: 2 passos (Pendente -> Separado -> Concluído via Modal) -->
-                            {% if requisicao.status == 'pendente' %}
-                                <button type="button" class="btn btn-success-action" onclick="confirmarSeparacao();">
+                        {% if requisicao.status == 'pendente' %}
+                            <!-- PASSO 1: Marcar como Separado / Confirmar Recebimento de Devolução -->
+                            <button type="button" class="btn btn-success-action" onclick="confirmarSeparacao();">
+                                {% if requisicao.tipo_requisicao == 'devolucao' %}
+                                    ↩️ Receber Devolução no Estoque
+                                {% else %}
                                     📦 Marcar como Separado
+                                {% endif %}
+                            </button>
+                        {% elif requisicao.status == 'separado' %}
+                            <!-- PASSO 2: Despacho final -->
+                            {% if eh_maf %}
+                                <button type="button" class="btn btn-success-action" onclick="processarDespachoMAF();">
+                                    📄 Despachar NF
                                 </button>
-                            {% elif requisicao.status == 'separado' %}
+                            {% else %}
                                 <button type="button" class="btn btn-success-action" onclick="abrirModalAuth();">
-                                    🚚 Despachar Requisição (Solicitante)
+                                    🚚 Finalizar Entrega
                                 </button>
                             {% endif %}
                         {% endif %}
@@ -237,7 +280,33 @@
             margin-bottom: 20px;
         }
 
-        .card-header h2 { margin: 0; color: #0a2540; font-size: 1.5em; }
+        .card-header h2 { margin: 0; color: #0a2540; font-size: 1.5em; display: flex; align-items: center; gap: 10px; }
+
+        .badge-devolucao {
+            font-size: 12px;
+            background-color: #dcfce7;
+            color: #15803d;
+            border: 1px solid #86efac;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: 700;
+        }
+
+        .alert-devolucao-box {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            padding: 14px 18px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13.5px;
+        }
+
+        .alert-devolucao-box p {
+            margin: 4px 0 0 0;
+            font-size: 13px;
+            color: #15803d;
+        }
 
         .status-badge {
             padding: 6px 14px;
@@ -338,7 +407,7 @@
             const senhaInput = document.getElementById('auth_senha');
 
             if (usuarioInput && !usuarioInput.value.trim()) {
-                alert('Por favor, informe a matrícula ou usuário do solicitante.');
+                alert('Por favor, informe o usuário do solicitante.');
                 usuarioInput.focus();
                 return;
             }
@@ -353,12 +422,17 @@
         }
 
         function confirmarSeparacao() {
-            if (confirm('Confirmar a separação desta requisição?')) {
+            const isDevolucao = "{{ requisicao.tipo_requisicao }}" === "devolucao";
+            const mensagem = isDevolucao 
+                ? 'Confirmar o recebimento desta devolução? Os itens serão somados ao estoque.' 
+                : 'Confirmar a separação desta requisição?';
+
+            if (confirm(mensagem)) {
                 document.getElementById('formSeparacao').submit();
             }
         }
 
-        function processarRequisicaoMAF() {
+        function processarDespachoMAF() {
             const inputNF = document.getElementById('nota_fiscal');
             if (inputNF && !inputNF.value.trim()) {
                 alert('A Nota Fiscal é obrigatória para este departamento antes de prosseguir.');
@@ -366,7 +440,7 @@
                 return;
             }
 
-            if (confirm('Confirmar o processamento e despacho direto desta requisição MAF?')) {
+            if (confirm('Confirmar o despacho da Nota Fiscal para esta requisição MAF?')) {
                 document.getElementById('formSeparacao').submit();
             }
         }

@@ -83,7 +83,7 @@
     {
         "codigo": "2013",
         "descricao": "Mascara Respiratoria Semi-Facial com Filtro",
-        "quantidade_maxima": 4,
+        "quantidade_maxima": 45,
         "categoria": "epi"
     },
     {
@@ -129,27 +129,141 @@
         "descricao": "caneta",
         "quantidade_maxima": 20,
         "categoria": "escritorio",
-        "saldo": 2,
+        "saldo": 18,
         "estoque_minimo": 20
     },
     {
         "codigo": "2019",
         "descricao": "Manga de Protecao em Raspa para Braco",
-        "quantidade_maxima": 6,
         "categoria": "escritorio",
-        "saldo": 0
+        "saldo": 0,
+        "estoque_minimo": 20
     },
     {
-        "codigo": "12095-050",
-        "descricao": "luvex",
-        "quantidade_maxima": 2,
-        "categoria": "epi",
-        "saldo": 0
+        "codigo": "12085-193",
+        "descricao": "papel",
+        "estoque_minimo": 105,
+        "saldo": 0,
+        "categoria": "escritorio"
     },
     {
-        "codigo": "12095-050",
-        "descricao": "lapis",
-        "quantidade_maxima": 5,
+        "codigo": "1001",
+        "descricao": "Caneta Esferogr\u00e1fica Azul 0.7mm",
+        "categoria": "escritorio",
+        "estoque_minimo": 25
+    },
+    {
+        "codigo": "1002",
+        "descricao": "Caneta Esferogr\u00e1fica Preta 0.7mm",
+        "categoria": "escritorio",
+        "estoque_minimo": 36
+    },
+    {
+        "codigo": "1003",
+        "descricao": "Caneta Esferogr\u00e1fica Vermelha 0.7mm",
+        "quantidade_maxima": 1,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1004",
+        "descricao": "Papel A4 Sulfite 75g (Pacote c/ 500 fls)",
+        "quantidade_maxima": 1,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1005",
+        "descricao": "L\u00e1pis Preto Preto N\u00ba 2 HB",
+        "quantidade_maxima": 1,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1006",
+        "descricao": "Borracha Branca Escolar M\u00e9dia",
+        "quantidade_maxima": 1,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1007",
+        "descricao": "Apontador de L\u00e1pis c/ Dep\u00f3sito",
+        "quantidade_maxima": 1,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1008",
+        "descricao": "Grampeador de Mesa de Metal 26/6",
+        "quantidade_maxima": 1,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1009",
+        "descricao": "Caixa de Grampo 26/6 (5000 un)",
+        "quantidade_maxima": 1,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1010",
+        "descricao": "Extrator de Grampo Esp\u00e1tula",
+        "quantidade_maxima": 1,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1011",
+        "descricao": "Marca Texto Amarelo",
+        "quantidade_maxima": 1,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1012",
+        "descricao": "Bloco de Notas Adesivas Amarelo 76x76mm",
+        "quantidade_maxima": 1,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1013",
+        "descricao": "Clips para Papel N\u00ba 2/0 (Caixa c/ 100)",
+        "quantidade_maxima": 1,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1014",
+        "descricao": "Fita Adesiva Transparente 12mm x 40m",
+        "quantidade_maxima": 1,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1015",
+        "descricao": "Tesoura de M\u00e9dia em A\u00e7o Inox 17cm",
+        "quantidade_maxima": 1,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1016",
+        "descricao": "Regra de Pl\u00e1stico Transparente 30cm",
+        "quantidade_maxima": 1,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1017",
+        "descricao": "Pasta Suspensa Pl\u00e1stica Azul",
+        "quantidade_maxima": 1,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1018",
+        "descricao": "Pasta L Transparente A4",
+        "quantidade_maxima": 1,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1019",
+        "descricao": "Corretivo em Fita 5mm x 10m",
+        "quantidade_maxima": 1,
+        "categoria": "escritorio"
+    },
+    {
+        "codigo": "1020",
+        "descricao": "Calculadora de Mesa 12 Digitos",
+        "quantidade_maxima": 1,
         "categoria": "escritorio"
     }
 ]

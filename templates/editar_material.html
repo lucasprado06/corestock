@@ -4,7 +4,9 @@
 
 {% block content %}
 <div style="max-width: 500px; margin: 40px auto; background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #cbd5e1;">
-    <h2 style="margin-top: 0; color: #0a2540; font-size: 1.5em; margin-bottom: 20px;">Editar Material</h2>
+    <h2 style="margin-top: 0; color: #0a2540; font-size: 1.5em; margin-bottom: 20px;">
+        Editar Material ({% if material.categoria == 'epi' %}EPI{% else %}Escritório{% endif %})
+    </h2>
 
     <form action="{{ url_for('editar_material', codigo_material=material.codigo) }}" method="POST">
         <div style="margin-bottom: 16px;">
@@ -14,7 +16,7 @@
             <input type="text" 
                    value="{{ material.codigo }}" 
                    disabled 
-                   style="width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; background-color: #f8fafc; color: #64748b; font-weight: 600; box-sizing: border-radius;">
+                   style="width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; background-color: #f8fafc; color: #64748b; font-weight: 600; box-sizing: border-box;">
         </div>
 
         <div style="margin-bottom: 16px;">
@@ -29,6 +31,22 @@
                    style="width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; color: #1e293b; box-sizing: border-box; outline: none;">
         </div>
 
+        {% if material.categoria == 'epi' %}
+        <!-- Campo exclusivo para EPI: Quantidade Máxima por Requisição -->
+        <div style="margin-bottom: 24px;">
+            <label for="quantidade_maxima" style="display: block; font-weight: 600; color: #334155; font-size: 13.5px; margin-bottom: 6px;">
+                Quantidade Máxima por Requisição:
+            </label>
+            <input type="number" 
+                   id="quantidade_maxima" 
+                   name="quantidade_maxima" 
+                   value="{{ material.quantidade_maxima if material.quantidade_maxima is defined else 1 }}" 
+                   min="1" 
+                   required 
+                   style="width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; color: #1e293b; box-sizing: border-box; outline: none;">
+        </div>
+        {% else %}
+        <!-- Campo exclusivo para Material de Escritório: Estoque Mínimo / Alerta de Reposição -->
         <div style="margin-bottom: 24px;">
             <label for="estoque_minimo" style="display: block; font-weight: 600; color: #334155; font-size: 13.5px; margin-bottom: 6px;">
                 Estoque Mínimo (Alerta de Reposição):
@@ -36,14 +54,15 @@
             <input type="number" 
                    id="estoque_minimo" 
                    name="estoque_minimo" 
-                   value="{{ material.estoque_minimo if material.estoque_minimo is defined else material.quantidade_maxima or 0 }}" 
+                   value="{{ material.estoque_minimo if material.estoque_minimo is defined else 0 }}" 
                    min="0" 
                    required 
                    style="width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; color: #1e293b; box-sizing: border-box; outline: none;">
             <small style="display: block; color: #64748b; margin-top: 4px; font-size: 12px;">
-                O sistema emitirá o alerta "🟡 Estoque Baixo" sempre que o saldo for menor ou igual a esse número.
+                O sistema emitirá o alerta "ESTOQUE BAIXO" na tela de Posição de Estoque sempre que o saldo for menor ou igual a esse número.
             </small>
         </div>
+        {% endif %}
 
         <div style="display: flex; gap: 12px; align-items: center;">
             <button type="submit" 

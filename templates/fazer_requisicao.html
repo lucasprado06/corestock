@@ -5,7 +5,7 @@
 {% block content %}
     <h1 class="page-title">Nova Solicitação</h1>
 
-    <!-- Exibe as abas somente se o usuário tiver acesso aos EPIs -->
+    <!-- Exibe as abas somente se o usuário tiver permissão para acessar os EPIs -->
     {% if pode_acessar_epi %}
     <div class="category-tabs">
         <a href="{{ url_for('fazer_requisicao', categoria='escritorio') }}" 
@@ -23,8 +23,9 @@
           class="form-container {% if categoria_atual == 'epi' %}form-epi{% else %}form-escritorio{% endif %}">
         
         <input type="hidden" name="categoria_solicitacao" value="{{ categoria_atual }}">
+        <input type="hidden" name="tipo_requisicao" value="saida">
         
-        <!-- Título informando a categoria selecionada -->
+        <!-- Título do Formulário -->
         <h3 class="form-title {% if categoria_atual == 'epi' %}title-epi{% else %}title-escritorio{% endif %}">
             {% if categoria_atual == 'epi' %}
                 🛡️ Solicitação de Equipamentos de Proteção (EPI)
@@ -33,9 +34,9 @@
             {% endif %}
         </h3>
 
-        <!-- Lista de Itens -->
+        <!-- Lista Dinâmica de Itens -->
         <div id="itens-container">
-            <!-- Primeiro item (obrigatório) -->
+            <!-- Item 1 (Obrigatório) -->
             <div class="item-linha" id="item-0">
                 <select name="materiais[0][codigo]" id="select-0" required class="input-select" onchange="verificarEstoqueDisponivel(0)">
                     <option value="" disabled selected>Selecione o material</option>
@@ -64,8 +65,9 @@
     <style>
         .page-title {
             text-align: center;
-            color: #333;
+            color: #0a2540;
             margin-bottom: 25px;
+            font-weight: 800;
         }
 
         .category-tabs {
@@ -78,8 +80,8 @@
         .tab-btn {
             padding: 12px 24px;
             border-radius: 25px;
-            background-color: #e9ecef;
-            color: #495057;
+            background-color: #e2e8f0;
+            color: #475569;
             text-decoration: none;
             font-weight: bold;
             font-size: 15px;
@@ -88,47 +90,49 @@
         }
 
         .tab-btn:hover {
-            background-color: #dee2e6;
+            background-color: #cbd5e1;
         }
 
         /* Aba Escritório Ativa */
         .tab-escritorio.active {
             background-color: #007bff;
             color: white;
-            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
         }
 
         /* Aba EPI Ativa */
         .tab-epi.active {
             background-color: #856404;
             color: white;
-            box-shadow: 0 4px 10px rgba(133, 100, 4, 0.3);
+            box-shadow: 0 4px 12px rgba(133, 100, 4, 0.3);
         }
 
-        /* Contêiner do Formulário */
+        /* Contêiner do Formulário Elevado */
         .form-container {
-            max-width: 600px;
+            max-width: 620px;
             margin: 0 auto;
-            padding: 25px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            padding: 28px;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         }
 
         .form-escritorio {
-            background-color: #f8f9fa;
-            border-top: 4px solid #007bff;
+            background-color: #f8fafc;
+            border-top: 5px solid #007bff;
         }
 
         .form-epi {
             background-color: #fffdf5;
-            border-top: 4px solid #856404;
+            border-top: 5px solid #856404;
         }
 
         .form-title {
             margin-top: 0;
-            margin-bottom: 20px;
+            margin-bottom: 22px;
             text-align: center;
+            font-size: 1.25em;
+            font-weight: 700;
         }
 
         .title-escritorio {
@@ -148,18 +152,30 @@
 
         .input-select {
             flex: 2;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            background: #fff;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background: #ffffff;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .input-select:focus {
+            border-color: #007bff;
         }
 
         .input-qtd {
             flex: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            background: #fff;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background: #ffffff;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .input-qtd:focus {
+            border-color: #007bff;
         }
 
         .spacer-btn {
@@ -168,13 +184,19 @@
 
         .btn-secondary {
             margin-bottom: 20px;
-            background-color: #6c757d;
+            background-color: #64748b;
             color: white;
             border: none;
-            padding: 9px 14px;
-            border-radius: 4px;
+            padding: 9px 15px;
+            border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
+            font-size: 13.5px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background-color: #475569;
         }
 
         .btn-submit {
@@ -182,10 +204,15 @@
             padding: 12px;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-submit:hover {
+            opacity: 0.9;
         }
 
         .btn-escritorio {
@@ -201,15 +228,23 @@
             color: white;
             border: none;
             padding: 10px 12px;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
+            transition: background-color 0.2s;
+        }
+
+        .btn-remove:hover {
+            background-color: #bb2d3b;
         }
     </style>
 
     <script>
         let itemIndex = 1;
         const estoquesChecados = {};
+
+        // Categoria atual injetada pelo Flask ('escritorio' ou 'epi')
+        const categoriaAtual = "{{ categoria_atual }}";
 
         function adicionarItem() {
             const container = document.getElementById('itens-container');
@@ -246,6 +281,9 @@
         }
 
         async function verificarEstoqueDisponivel(idx) {
+            // Se for EPI, desativa checagem direta de saldo
+            if (categoriaAtual === 'epi') return;
+
             const select = document.getElementById(`select-${idx}`);
             const inputQtd = document.getElementById(`qtd-${idx}`);
             

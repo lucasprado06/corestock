@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Devoluções Pendentes - CoreStock{% endblock %}
+
+{% block content %}
+    <h1 style="text-align: center; color: #166534; margin-bottom: 25px;">Devoluções Pendentes</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th style="width: 80px;">ID</th>
+                <th style="width: 150px;">Data</th>
+                <th>Solicitante</th>
+                <th>Departamento</th>
+                <th style="width: 130px; text-align: center;">Tipo</th>
+                <th style="width: 160px; text-align: center;">Ação</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for req in requisicoes %}
+            <tr>
+                <td><strong>#{{ req.id }}</strong></td>
+                <td>{{ req.data }}</td>
+                <td>{{ req.nome }}</td>
+                <td>{{ req.departamento }}</td>
+                <td style="text-align: center;">
+                    <span style="color: #16a34a; font-weight: 700;">↩️ Devolução</span>
+                </td>
+                <td style="text-align: center;">
+                    <a href="{{ url_for('ver_requisicao', requisicao_id=req.id) }}" class="btn-info">
+                        🔍 Conferir Itens
+                    </a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" style="text-align: center; color: #64748b; padding: 25px;">
+                    Nenhuma devolução pendente no momento.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <style>
+        .btn-info {
+            background-color: #f1f5f9;
+            color: #0284c7;
+            border: 1px solid #cbd5e1;
+            padding: 7px 14px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 600;
+            display: inline-block;
+            transition: all 0.2s ease;
+        }
+
+        .btn-info:hover {
+            background-color: #0284c7;
+            color: #ffffff;
+            border-color: #0284c7;
+        }
+    </style>
+{% endblock %}

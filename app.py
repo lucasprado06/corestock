@@ -347,6 +347,9 @@ def enviar_requisicao():
     itens_requisicao = []
 
     categoria_solicitacao = request.form.get('categoria_solicitacao', 'escritorio')
+    
+    # CAPTURA O TIPO DA REQUISIÇÃO: 'devolucao' ou 'saida' (padrão)
+    tipo_requisicao = request.form.get('tipo_requisicao', 'saida')
 
     for key, value in request.form.items():
         if key.startswith('materiais[') and key.endswith('][codigo]'):
@@ -372,7 +375,7 @@ def enviar_requisicao():
             
             if not material_encontrado:
                 flash(f'Material com código {codigo_material} não encontrado.', 'danger')
-                return redirect(url_for('fazer_requisicao'))
+                return redirect(url_for('fazer_devolucao' if tipo_requisicao == 'devolucao' else 'fazer_requisicao'))
 
             itens_requisicao.append({
                 'codigo': codigo_material,
@@ -384,7 +387,7 @@ def enviar_requisicao():
 
     if not itens_requisicao:
         flash('Nenhum item válido foi adicionado à requisição.', 'warning')
-        return redirect(url_for('fazer_requisicao'))
+        return redirect(url_for('fazer_devolucao' if tipo_requisicao == 'devolucao' else 'fazer_requisicao'))
 
     requisicoes = carregar_requisicoes()
     usuario_logado = session['user']
@@ -400,6 +403,7 @@ def enviar_requisicao():
         'registro': usuario_logado.get('registro'),
         'departamento': usuario_logado.get('departamento'),
         'categoria': categoria_solicitacao,
+        'tipo_requisicao': tipo_requisicao,  # <--- CRUCIAL: SALVA O TIPO DA REQUISIÇÃO
         'data': datetime.now().strftime('%d/%m/%Y %H:%M'),
         'status': 'pendente',
         'nota_fiscal': '-',
@@ -409,18 +413,41 @@ def enviar_requisicao():
     requisicoes.append(nova_requisicao)
     salvar_requisicoes(requisicoes)
     
-    flash(f'Requisição #{novo_id} enviada com sucesso!', 'success')
-    return redirect(url_for('fazer_requisicao', categoria=categoria_solicitacao))
-
+    if tipo_requisicao == 'devolucao':
+        flash(f'Devolução #{novo_id} enviada com sucesso para conferência!', 'success')
+        return redirect(url_for('fazer_devolucao'))
+    else:
+        flash(f'Requisição #{novo_id} enviada com sucesso!', 'success')
+        return redirect(url_for('fazer_requisicao', categoria=categoria_solicitacao))
+    
 @app.route('/pendentes')
 @login_required
 @gestor_required
 def pendentes():
-    requisicoes = carregar_requisicoes()
-    pendentes_list = [r for r in requisicoes if r.get('status') == 'pendente']
-    return render_template('pendentes.html', requisicoes=pendentes_list)
+    todas_requisicoes = carregar_requisicoes()
+    
+    # Apenas SAÍDAS entram aqui
+    requisicoes_saida = [
+        r for r in todas_requisicoes 
+        if r.get('status') == 'pendente' and r.get('tipo_requisicao', 'saida') != 'devolucao'
+    ]
+    
+    return render_template('pendentes.html', requisicoes=requisicoes_saida)
 
 
+@app.route('/devolucoes_pendentes')
+@login_required
+@gestor_required
+def devolucoes_pendentes():
+    todas_requisicoes = carregar_requisicoes()
+    
+    # Apenas DEVOLUÇÕES entram aqui
+    devolucoes = [
+        r for r in todas_requisicoes 
+        if r.get('status') == 'pendente' and r.get('tipo_requisicao') == 'devolucao'
+    ]
+    
+    return render_template('devolucoes_pendentes.html', requisicoes=devolucoes)
 @app.route('/separados')
 @login_required
 @gestor_required
@@ -448,74 +475,66 @@ def concluir_requisicao():
         flash('Requisição não encontrada.', 'danger')
         return redirect(url_for('pendentes'))
 
+    tipo_req = requisicao.get('tipo_requisicao', 'saida')
     categoria_req = requisicao.get('categoria', 'escritorio')
     depto_solicitante = str(requisicao.get('departamento', '')).strip().lower()
     eh_maf = ('maf porto real' in depto_solicitante) or ('maf betim' in depto_solicitante)
     acao_final = request.form.get('acao_final')
 
-    # A) FLUXO EM PASSO ÚNICO PARA DEPARTAMENTOS MAF (Porto Real / Betim)
-    if eh_maf or acao_final == 'concluir_direto':
-        nf_form = request.form.get('nota_fiscal', '').strip()
-        if not nf_form and not requisicao.get('nota_fiscal'):
-            flash(f'A Nota Fiscal é obrigatória para requisições do departamento "{requisicao.get("departamento")}".', 'danger')
-            return redirect(url_for('ver_requisicao', requisicao_id=requisicao_id))
-
-        nota_fiscal_final = nf_form or requisicao.get('nota_fiscal') or '-'
-        requisicao['nota_fiscal'] = nota_fiscal_final
-        requisicao['nota_fiscal_transferencia'] = nota_fiscal_final
-
-        # Processa as quantidades separadas e baixa estoque
+    # =========================================================================
+    # FLUXO DIRETO PARA DEVOLUÇÕES (Pendente -> Concluída de uma só vez)
+    # =========================================================================
+    if tipo_req == 'devolucao':
         for item in requisicao.get('itens', []):
             codigo_item = str(item.get('codigo', ''))
             nova_qtd_str = request.form.get(f'qtd_item_{codigo_item}')
             
             try:
-                qtd_separar = int(nova_qtd_str) if nova_qtd_str is not None else item.get('quantidade', 0)
+                qtd_devolver = int(nova_qtd_str) if nova_qtd_str is not None else item.get('quantidade', 0)
             except ValueError:
-                qtd_separar = item.get('quantidade', 0)
+                qtd_devolver = item.get('quantidade', 0)
 
-            qtd_separar = max(0, qtd_separar)
-            item['quantidade_separada'] = qtd_separar
+            qtd_devolver = max(0, qtd_devolver)
+            item['quantidade_solicitada'] = item.get('quantidade_solicitada', item.get('quantidade', 0))
+            item['quantidade_separada'] = qtd_devolver
 
-            # Baixa no saldo de Estoque de Escritório
-            if categoria_req == 'escritorio' and qtd_separar > 0:
+            if qtd_devolver > 0:
+                # 1. Atualiza o saldo somando na Posição do Estoque
                 mat_estoque = next((m for m in materiais_disponiveis if str(m['codigo']) == codigo_item), None)
                 if mat_estoque:
-                    mat_estoque['saldo'] = max(0, mat_estoque.get('saldo', 0) - qtd_separar)
+                    mat_estoque['saldo'] = mat_estoque.get('saldo', 0) + qtd_devolver
 
-            # Grava o histórico de movimentação
-            if qtd_separar > 0:
+                # 2. Registra o histórico de movimentação como positivo (Entrada / Devolução)
                 registrar_movimentacao(
                     codigo=item.get('codigo', '-'),
                     descricao=item.get('nome') or item.get('descricao', '-'),
                     categoria=categoria_req,
-                    tipo='Consumo Requisição',
-                    quantidade=qtd_separar,
+                    tipo='Entrada',  # Registra como Entrada para marcar +Qtd no histórico
+                    quantidade=qtd_devolver,
                     usuario=session['user'].get('nome', 'Abastecedor'),
-                    nota_fiscal=nota_fiscal_final,
-                    motivo=f"Baixa Direta Requisição {requisicao['id']}",
+                    nota_fiscal='-',
+                    motivo=f"Entrada por Devolução da Requisição #{requisicao['id']}",
                     requisicao_id=requisicao['id']
                 )
 
-        agora = datetime.now().strftime('%d/%m/%Y %H:%M')
+        # 3. Conclui e encerra a devolução diretamente
+        usuario_acao = session['user'].get('nome', 'Abastecedor')
         requisicao['status'] = 'concluida'
-        requisicao['data_retirada'] = agora
-        requisicao['data_conclusao'] = agora
-        requisicao['separado_por'] = session['user'].get('nome', 'Abastecedor')
-        requisicao['finalizado_por'] = session['user'].get('nome', 'Abastecedor')
+        requisicao['data_retirada'] = datetime.now().strftime('%d/%m/%Y %H:%M')
+        requisicao['data_conclusao'] = datetime.now().strftime('%d/%m/%Y %H:%M')
+        requisicao['separado_por'] = usuario_acao
+        requisicao['finalizado_por'] = usuario_acao
 
         salvar_requisicoes(requisicoes)
         salvar_materiais(materiais_disponiveis)
 
-        flash(f'Requisição #{requisicao_id} finalizada e despachada com sucesso!', 'success')
-        return redirect(url_for('separados'))
+        flash(f'Devolução #{requisicao_id} aceita! O saldo foi incrementado no estoque.', 'success')
+        return redirect(url_for('devolucoes_pendentes'))
 
-    # B) FLUXO EM 2 PASSOS PARA OUTROS DEPARTAMENTOS
-    # Passo 1: Marcar como Separado
-    if requisicao.get('status') == 'pendente':
-        requisicao['nota_fiscal'] = '-'
-        requisicao['nota_fiscal_transferencia'] = '-'
-
+    # =========================================================================
+    # FLUXO DE SAÍDA PADRÃO (Separação em 2 Etapas: Pendente -> Separado -> Concluída)
+    # =========================================================================
+    if requisicao.get('status') == 'pendente' or acao_final == 'separar':
         itens_para_processar = []
 
         for item in requisicao.get('itens', []):
@@ -562,8 +581,8 @@ def concluir_requisicao():
                         tipo='Consumo Requisição',
                         quantidade=qtd_separar,
                         usuario=session['user'].get('nome', 'Abastecedor'),
-                        nota_fiscal='-',
-                        motivo=f"Baixa da Requisição {requisicao['id']}",
+                        nota_fiscal=requisicao.get('nota_fiscal', '-'),
+                        motivo=f"Separação da Requisição #{requisicao['id']}",
                         requisicao_id=requisicao['id']
                     )
 
@@ -586,14 +605,14 @@ def concluir_requisicao():
                         tipo='Consumo Requisição',
                         quantidade=qtd_separada,
                         usuario=session['user'].get('nome', 'Abastecedor'),
-                        nota_fiscal='-',
-                        motivo=f"Baixa da Requisição {requisicao['id']}",
+                        nota_fiscal=requisicao.get('nota_fiscal', '-'),
+                        motivo=f"Separação da Requisição #{requisicao['id']}",
                         requisicao_id=requisicao['id']
                     )
 
         requisicao['status'] = 'separado'
         requisicao['data_retirada'] = datetime.now().strftime('%d/%m/%Y %H:%M')
-        requisicao['separado_por'] = session['user'].get('nome', '')
+        requisicao['separado_por'] = session['user'].get('nome', 'Abastecedor')
         
         salvar_requisicoes(requisicoes)
         salvar_materiais(materiais_disponiveis)
@@ -601,41 +620,82 @@ def concluir_requisicao():
         flash(f'Requisição #{requisicao_id} separada com sucesso!', 'success')
         return redirect(url_for('pendentes'))
 
-    # Passo 2: Despachar com Assinatura do Solicitante
-    elif requisicao.get('status') == 'separado':
-        auth_user = request.form.get('auth_usuario', '').strip().lower()
-        auth_senha = request.form.get('auth_senha', '').strip()
+    elif requisicao.get('status') == 'separado' or acao_final in ['concluir', 'concluir_direto']:
+        if eh_maf or acao_final == 'concluir_direto':
+            nf_form = request.form.get('nota_fiscal', '').strip()
+            if nf_form == '-':
+                nf_form = ''
 
-        if not auth_user or not auth_senha:
-            flash('Informe o usuário/registro e a senha do solicitante para autenticar a entrega.', 'danger')
-            return redirect(url_for('ver_requisicao', requisicao_id=requisicao_id))
+            if not nf_form and not requisicao.get('nota_fiscal'):
+                flash('A Nota Fiscal é obrigatória para o despacho.', 'danger')
+                return redirect(url_for('separados'))
 
-        usuarios = carregar_usuarios()
-        usuario_valido = next(
-            (u for u in usuarios if str(u.get('username', '')).strip().lower() == auth_user or str(u.get('registro', '')).strip().lower() == auth_user),
-            None
-        )
+            nota_fiscal_final = nf_form or requisicao.get('nota_fiscal') or '-'
+            requisicao['nota_fiscal'] = nota_fiscal_final
+            requisicao['nota_fiscal_transferencia'] = nota_fiscal_final
+            usuario_conclusao = session['user'].get('nome', 'Abastecedor')
 
-        if not usuario_valido:
-            flash('Usuário/Registro do solicitante não encontrado.', 'danger')
-            return redirect(url_for('ver_requisicao', requisicao_id=requisicao_id))
+        else:
+            auth_user = request.form.get('auth_usuario', '').strip().lower()
+            auth_senha = request.form.get('auth_senha', '').strip()
 
-        senha_salva = usuario_valido.get('senha', '')
-        senha_correta = check_password_hash(senha_salva, auth_senha) if (senha_salva.startswith('scrypt:') or senha_salva.startswith('pbkdf2:')) else (senha_salva == auth_senha)
+            if not auth_user or not auth_senha:
+                flash('Informe o usuário e a senha do solicitante para autenticar a entrega.', 'danger')
+                return redirect(url_for('separados'))
 
-        if not senha_correta:
-            flash('Senha do solicitante incorreta. Despacho cancelado.', 'danger')
-            return redirect(url_for('ver_requisicao', requisicao_id=requisicao_id))
+            usuarios = carregar_usuarios()
+            usuario_valido = next(
+                (u for u in usuarios if str(u.get('username', '')).strip().lower() == auth_user),
+                None
+            )
+
+            if not usuario_valido:
+                flash('Usuário solicitante não encontrado.', 'danger')
+                return redirect(url_for('separados'))
+
+            senha_salva = usuario_valido.get('senha', '')
+            senha_correta = check_password_hash(senha_salva, auth_senha) if (senha_salva.startswith('scrypt:') or senha_salva.startswith('pbkdf2:')) else (senha_salva == auth_senha)
+
+            if not senha_correta:
+                flash('Senha do solicitante incorreta. Despacho cancelado.', 'danger')
+                return redirect(url_for('separados'))
+
+            usuario_conclusao = usuario_valido.get('nome', '')
 
         requisicao['status'] = 'concluida'
         requisicao['data_conclusao'] = datetime.now().strftime('%d/%m/%Y %H:%M')
-        requisicao['finalizado_por'] = usuario_valido.get('nome', '')
+        requisicao['finalizado_por'] = usuario_conclusao
         
+        movimentacoes = carregar_movimentacoes()
+        nf_atualizada = requisicao.get('nota_fiscal', '-')
+        
+        houve_atualizacao = False
+        for mov in movimentacoes:
+            req_vinculada = mov.get('requisicao_id') or mov.get('req_id')
+            if str(req_vinculada) == str(requisicao_id):
+                mov['nota_fiscal'] = nf_atualizada
+                houve_atualizacao = True
+        
+        if houve_atualizacao:
+            salvar_movimentacoes(movimentacoes)
+
         salvar_requisicoes(requisicoes)
-        flash(f'Requisição #{requisicao_id} despachada e concluída com sucesso por {usuario_valido.get("nome")}!', 'success')
+        flash(f'Requisição #{requisicao_id} concluída com sucesso por {usuario_conclusao}!', 'success')
         return redirect(url_for('separados'))
 
     return redirect(url_for('historico'))
+
+@app.route('/devolucao')
+@login_required
+def fazer_devolucao():
+    # Carrega os materiais da categoria escritório
+    materiais_todos = carregar_materiais()
+    materiais_escritorio = [
+        m for m in materiais_todos 
+        if str(m.get('categoria', 'escritorio')).lower() == 'escritorio'
+    ]
+    
+    return render_template('devolucao.html', materiais=materiais_escritorio)
 
 @app.route('/estoque')
 @login_required
@@ -733,9 +793,12 @@ def movimentar_estoque():
 @login_required
 @gestor_required
 def historico_movimentacoes():
+    # Carrega o histórico de movimentações (movimentacoes.json ou banco)
     movimentacoes = carregar_movimentacoes()
-    # Exibe todo o histórico (Escritório + EPI), ordenando dos mais recentes para os mais antigos
-    movimentacoes.reverse()
+    
+    # Ordena das mais recentes para as mais antigas
+    movimentacoes = sorted(movimentacoes, key=lambda x: x.get('data', ''), reverse=True)
+    
     return render_template('historico_movimentacoes.html', movimentacoes=movimentacoes)
 
 @app.route('/api/checar_estoque/<codigo>')
@@ -914,6 +977,73 @@ def exportar_relatorio_excel():
         download_name=nome_arquivo
     )
 
+@app.route('/exportar_movimentacoes_excel', methods=['POST', 'GET'])
+@login_required
+@gestor_required
+def exportar_movimentacoes_excel():
+    movimentacoes = carregar_movimentacoes()
+
+    data_inicio_str = request.form.get('data_inicio') or request.args.get('data_inicio')
+    data_fim_str = request.form.get('data_fim') or request.args.get('data_fim')
+
+    data_inicio = datetime.strptime(data_inicio_str, '%Y-%m-%d') if data_inicio_str else None
+    data_fim = datetime.strptime(data_fim_str, '%Y-%m-%d') if data_fim_str else None
+
+    linhas_movimentacoes = []
+
+    for mov in movimentacoes:
+        data_mov_raw = mov.get('data', '')
+        try:
+            if '/' in data_mov_raw:
+                data_mov_dt = datetime.strptime(data_mov_raw.split(' ')[0], '%d/%m/%Y')
+            else:
+                data_mov_dt = datetime.strptime(data_mov_raw.split(' ')[0], '%Y-%m-%d')
+        except Exception:
+            data_mov_dt = None
+
+        if data_inicio and data_mov_dt and data_mov_dt < data_inicio:
+            continue
+        if data_fim and data_mov_dt and data_mov_dt > data_fim:
+            continue
+
+        req_id = mov.get('requisicao_id') or mov.get('req_id') or '-'
+        if str(req_id) != '-':
+            req_id = f"#{req_id}"
+
+        categoria_traduzida = 'EPI' if str(mov.get('categoria', '')).lower() == 'epi' else 'Escritório'
+
+        linhas_movimentacoes.append({
+            'Data / Hora': mov.get('data', '-'),
+            'Código Material': mov.get('codigo_material') or mov.get('codigo') or '-',
+            'Descrição Material': mov.get('descricao_material') or mov.get('descricao') or '-',
+            'Tipo/Categoria': categoria_traduzida,
+            'Tipo Movimentação': mov.get('tipo', '-'),
+            'Quantidade': mov.get('quantidade', 0),
+            'Nota Fiscal': mov.get('nota_fiscal', '-'),
+            'Nº Requisição': req_id,
+            'Usuário': mov.get('usuario', '-'),
+            'Motivo / Observação': mov.get('motivo', '-')
+        })
+
+    if not linhas_movimentacoes:
+        flash('Nenhuma movimentação encontrada para o período selecionado.', 'warning')
+        return redirect(url_for('historico_movimentacoes'))
+
+    df = pd.DataFrame(linhas_movimentacoes)
+
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Movimentações de Estoque')
+
+    output.seek(0)
+    nome_arquivo = f"Relatorio_Movimentacoes_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name=nome_arquivo
+    )
 
 # --- GERENCIAMENTO DE USUÁRIOS, MATERIAIS E DEPARTAMENTOS ---
 
@@ -1107,22 +1237,36 @@ def editar_material(codigo_material):
 
     if request.method == 'POST':
         nova_descricao = request.form.get('descricao', '').strip()
-        est_min_raw = request.form.get('estoque_minimo', '0')
-
-        try:
-            novo_est_min = int(est_min_raw)
-        except ValueError:
-            novo_est_min = 0
-
         material['descricao'] = nova_descricao
-        material['estoque_minimo'] = novo_est_min
-
-        salvar_materiais(materiais)
-        flash('Material atualizado com sucesso!', 'success')
 
         if material.get('categoria') == 'epi':
+            # Atualiza apenas a Quantidade Máxima para EPI
+            qtd_max_raw = request.form.get('quantidade_maxima', '1')
+            try:
+                material['quantidade_maxima'] = int(qtd_max_raw)
+            except ValueError:
+                material['quantidade_maxima'] = 1
+            
+            # Garante que não haverá chave de estoque_minimo no item EPI
+            material.pop('estoque_minimo', None)
+            
+            salvar_materiais(materiais)
+            flash('EPI atualizado com sucesso!', 'success')
             return redirect(url_for('gerenciar_materiais_epi'))
-        return redirect(url_for('gerenciar_materiais_escritorio'))
+        else:
+            # Atualiza apenas o Estoque Mínimo para Material de Escritório
+            est_min_raw = request.form.get('estoque_minimo', '0')
+            try:
+                material['estoque_minimo'] = int(est_min_raw)
+            except ValueError:
+                material['estoque_minimo'] = 0
+
+            # Remove quantidade_maxima se ainda existia do modelo antigo
+            material.pop('quantidade_maxima', None)
+
+            salvar_materiais(materiais)
+            flash('Material de escritório atualizado com sucesso!', 'success')
+            return redirect(url_for('gerenciar_materiais_escritorio'))
 
     return render_template('editar_material.html', material=material)
 

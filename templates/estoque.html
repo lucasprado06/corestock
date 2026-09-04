@@ -18,7 +18,7 @@
         {% endif %}
     </div>
 
-    <!-- Cards Informativos de Resumo -->
+    <!-- Cards Informativos de Resumo (Atualizados via JS) -->
     <div class="summary-cards">
         <div class="card-summary card-blue">
             <span class="card-title">Total de Itens</span>
@@ -40,15 +40,20 @@
 
     <!-- Filtros e Busca Instantânea -->
     <div class="filter-bar">
+        <!-- Campo de Busca por Texto -->
         <div class="search-box">
             <span class="search-icon">🔍</span>
             <input type="text" id="inputBuscaEstoque" onkeyup="filtrarEstoque()" placeholder="Buscar por Part Number (Código) ou Descrição..." autocomplete="off">
         </div>
 
-        <div class="category-filter">
-            <button class="filter-btn active" onclick="filtrarCategoria('todas', this)">Todas</button>
-            <button class="filter-btn" onclick="filtrarCategoria('escritorio', this)">Escritório</button>
-            <button class="filter-btn" onclick="filtrarCategoria('epi', this)">EPI</button>
+        <!-- Dropdown com os Filtros de Situação do Estoque -->
+        <div class="status-filter">
+            <select id="selectFiltroStatus" onchange="filtrarEstoque()" class="select-status">
+                <option value="todos" selected>📦 Todos os Materiais</option>
+                <option value="com_estoque">✅ Com Estoque (Saldo > 0)</option>
+                <option value="estoque_baixo">⚠️ Estoque Baixo (≤ Mínimo)</option>
+                <option value="sem_estoque">🚫 Sem Estoque (Zerados)</option>
+            </select>
         </div>
     </div>
 
@@ -68,10 +73,21 @@
             {% for item in materiais %}
             {% set saldo = item.saldo if item.saldo is defined else 0 %}
             {% set est_min = item.estoque_minimo if item.estoque_minimo is defined else 0 %}
+            
+            {% if saldo == 0 %}
+                {% set status_tag = 'sem_estoque' %}
+            {% elif saldo <= est_min %}
+                {% set status_tag = 'estoque_baixo' %}
+            {% else %}
+                {% set status_tag = 'com_estoque' %}
+            {% endif %}
+
             <tr data-categoria="{{ item.categoria or 'escritorio' }}" 
                 data-saldo="{{ saldo }}" 
                 data-estmin="{{ est_min }}" 
+                data-status="{{ status_tag }}"
                 class="linha-material {% if saldo == 0 %}row-zerado{% elif saldo <= est_min %}row-baixo{% endif %}">
+                
                 <td><code>{{ item.codigo }}</code></td>
                 <td><strong>{{ item.descricao }}</strong></td>
                 <td style="text-align: center;">
@@ -226,31 +242,21 @@
             box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
         }
 
-        .category-filter {
-            display: flex;
-            gap: 8px;
-            background: #f1f5f9;
-            padding: 4px;
-            border-radius: 8px;
+        .select-status {
+            padding: 10px 14px;
             border: 1px solid #cbd5e1;
-        }
-
-        .filter-btn {
-            background: transparent;
-            border: none;
-            padding: 6px 14px;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 600;
-            color: #475569;
+            color: #0a2540;
+            background-color: #ffffff;
             cursor: pointer;
-            transition: all 0.2s;
+            outline: none;
+            transition: border-color 0.2s;
         }
 
-        .filter-btn.active {
-            background: #ffffff;
-            color: #0a2540;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        .select-status:focus {
+            border-color: #0284c7;
         }
 
         /* Table Styling */
@@ -296,7 +302,6 @@
             color: #0a2540;
         }
 
-        /* Estilização por texto puro colorido (Sem fundo e sem emoji) */
         .text-cat {
             font-size: 12px;
             font-weight: 700;
@@ -324,21 +329,13 @@
     </style>
 
     <script>
-        let categoriaAtiva = 'todas';
-
-        function filtrarCategoria(cat, btn) {
-            categoriaAtiva = cat;
-            
-            // Atualiza estado dos botões de aba
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            filtrarEstoque();
-        }
-
         function filtrarEstoque() {
             const input = document.getElementById('inputBuscaEstoque');
             const termo = input ? input.value.toLowerCase().trim() : '';
+            
+            const selectFiltro = document.getElementById('selectFiltroStatus');
+            const statusSelecionado = selectFiltro ? selectFiltro.value : 'todos';
+
             const linhas = document.querySelectorAll('#tabelaEstoque tbody tr.linha-material');
             const msgSemEstoque = document.getElementById('msgSemEstoque');
 
@@ -349,19 +346,31 @@
             let visiveis = 0;
 
             linhas.forEach(linha => {
-                const categoriaLinha = linha.getAttribute('data-categoria') || 'escritorio';
                 const saldo = parseInt(linha.getAttribute('data-saldo') || '0', 10);
                 const estMin = parseInt(linha.getAttribute('data-estmin') || '0', 10);
+                const statusLinha = linha.getAttribute('data-status') || 'com_estoque';
                 const textoLinha = linha.textContent.toLowerCase();
 
-                const bateCategoria = (categoriaAtiva === 'todas' || categoriaLinha === categoriaAtiva);
+                // 1. Valida texto digitado na busca
                 const bateTexto = (termo === '' || textoLinha.indexOf(termo) > -1);
 
-                if (bateCategoria && bateTexto) {
+                // 2. Valida filtro selecionado no dropdown
+                let bateStatus = false;
+                if (statusSelecionado === 'todos') {
+                    bateStatus = true;
+                } else if (statusSelecionado === 'com_estoque') {
+                    // Exibe tudo o que tem saldo > 0 (normais e baixos)
+                    bateStatus = (statusLinha === 'com_estoque' || statusLinha === 'estoque_baixo');
+                } else {
+                    bateStatus = (statusLinha === statusSelecionado);
+                }
+
+                // 3. Aplica a visibilidade
+                if (bateTexto && bateStatus) {
                     linha.style.display = '';
                     visiveis++;
 
-                    // Acumula métricas somente para as linhas visíveis
+                    // Acumula métricas dos cards apenas para os itens filtrados
                     totalItens++;
                     totalSaldo += saldo;
 
@@ -375,19 +384,19 @@
                 }
             });
 
-            // Atualiza os valores nos cards do topo
+            // Atualiza os cards no topo com base na visão atual
             document.getElementById('totalItensCard').innerText = totalItens;
             document.getElementById('totalSaldoCard').innerText = totalSaldo;
             document.getElementById('baixosCard').innerText = baixos;
             document.getElementById('zeradosCard').innerText = zerados;
 
-            // Exibe mensagem quando nenhum item bate com os filtros
+            // Exibe aviso se nada for encontrado
             if (msgSemEstoque) {
                 msgSemEstoque.style.display = (visiveis === 0 && linhas.length > 0) ? 'block' : 'none';
             }
         }
 
-        // Executa a contagem inicial assim que a página carregar
+        // Executa ao carregar a página
         document.addEventListener('DOMContentLoaded', function() {
             filtrarEstoque();
         });

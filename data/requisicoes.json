@@ -562,5 +562,676 @@
         "separado_por": "Lucas Prado",
         "data_conclusao": "03/09/2026 21:23",
         "finalizado_por": "Lucas Prado"
+    },
+    {
+        "id": 27,
+        "nome": "Lucas Prado",
+        "username": "lucas.prado",
+        "registro": "7431",
+        "departamento": "Log\u00edstica",
+        "categoria": "epi",
+        "data": "04/09/2026 18:08",
+        "status": "concluida",
+        "nota_fiscal": "-",
+        "itens": [
+            {
+                "codigo": "2016",
+                "nome": "Cinto de Seguranca Paraquedista com Talabarte",
+                "quantidade": 5,
+                "quantidade_solicitada": 5,
+                "quantidade_separada": 5
+            }
+        ],
+        "nota_fiscal_transferencia": "-",
+        "data_retirada": "04/09/2026 18:08",
+        "separado_por": "Lucas Prado",
+        "data_conclusao": "04/09/2026 18:09",
+        "finalizado_por": "Lucas Prado"
+    },
+    {
+        "id": 28,
+        "nome": "Lucas Prado",
+        "username": "lucas.prado",
+        "registro": "7431",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "data": "04/09/2026 18:09",
+        "status": "concluida",
+        "nota_fiscal": "-",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 2,
+                "quantidade_solicitada": 2,
+                "quantidade_separada": 2
+            }
+        ],
+        "nota_fiscal_transferencia": "-",
+        "data_retirada": "04/09/2026 18:09",
+        "separado_por": "Lucas Prado",
+        "data_conclusao": "04/09/2026 18:09",
+        "finalizado_por": "Lucas Prado"
+    },
+    {
+        "id": 29,
+        "nome": "Lucas Prado",
+        "username": "lucas.prado",
+        "registro": "7431",
+        "departamento": "Log\u00edstica",
+        "categoria": "epi",
+        "data": "04/09/2026 18:10",
+        "status": "concluida",
+        "nota_fiscal": "-",
+        "itens": [
+            {
+                "codigo": "2017",
+                "nome": "Colete Refletivo de Alta Visibilidade Tam G",
+                "quantidade": 10,
+                "quantidade_solicitada": 10,
+                "quantidade_separada": 10
+            }
+        ],
+        "nota_fiscal_transferencia": "-",
+        "data_retirada": "04/09/2026 18:10",
+        "separado_por": "Lucas Prado",
+        "data_conclusao": "04/09/2026 18:12",
+        "finalizado_por": "Lucas Prado"
+    },
+    {
+        "id": 30,
+        "nome": "Lucas Prado",
+        "username": "lucas.prado",
+        "registro": "7431",
+        "departamento": "Log\u00edstica",
+        "categoria": "epi",
+        "data": "04/09/2026 18:19",
+        "status": "concluida",
+        "nota_fiscal": "-1524754",
+        "itens": [
+            {
+                "codigo": "2017",
+                "nome": "Colete Refletivo de Alta Visibilidade Tam G",
+                "quantidade": 2,
+                "quantidade_solicitada": 2,
+                "quantidade_separada": 2
+            }
+        ],
+        "nota_fiscal_transferencia": "-1524754",
+        "data_retirada": "04/09/2026 18:21",
+        "separado_por": "Lucas Prado",
+        "data_conclusao": "04/09/2026 18:21",
+        "finalizado_por": "Lucas Prado"
+    },
+    {
+        "id": 31,
+        "nome": "Lucas Prado",
+        "username": "lucas.prado",
+        "registro": "7431",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "data": "04/09/2026 18:19",
+        "status": "concluida",
+        "nota_fiscal": "-",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 2,
+                "quantidade_solicitada": 2,
+                "quantidade_separada": 2
+            }
+        ],
+        "nota_fiscal_transferencia": "-",
+        "data_retirada": "04/09/2026 18:20",
+        "separado_por": "Lucas Prado",
+        "data_conclusao": "04/09/2026 18:21",
+        "finalizado_por": "Lucas Prado"
+    },
+    {
+        "id": 32,
+        "nome": "MAF Porto Real",
+        "username": "7585",
+        "registro": "7585",
+        "departamento": "MAF Porto Real",
+        "categoria": "escritorio",
+        "data": "04/09/2026 18:22",
+        "status": "concluida",
+        "nota_fiscal": "-12542",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 1,
+                "quantidade_solicitada": 1,
+                "quantidade_separada": 1
+            }
+        ],
+        "nota_fiscal_transferencia": "-12542",
+        "data_retirada": "04/09/2026 18:23",
+        "data_conclusao": "04/09/2026 18:23",
+        "separado_por": "Lucas Prado",
+        "finalizado_por": "Lucas Prado"
+    },
+    {
+        "id": 33,
+        "nome": "MAF Porto Real",
+        "username": "7585",
+        "registro": "7585",
+        "departamento": "MAF Porto Real",
+        "categoria": "epi",
+        "data": "04/09/2026 18:22",
+        "status": "concluida",
+        "nota_fiscal": "-125423",
+        "itens": [
+            {
+                "codigo": "2014",
+                "nome": "Avental de PVR Impermeavel 120x70cm",
+                "quantidade": 2,
+                "quantidade_solicitada": 2,
+                "quantidade_separada": 2
+            }
+        ],
+        "nota_fiscal_transferencia": "-125423",
+        "data_retirada": "04/09/2026 18:23",
+        "data_conclusao": "04/09/2026 18:23",
+        "separado_por": "Lucas Prado",
+        "finalizado_por": "Lucas Prado"
+    },
+    {
+        "id": 34,
+        "nome": "Lucas Prado",
+        "username": "lucas.prado",
+        "registro": "7431",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "data": "04/09/2026 18:25",
+        "status": "concluida",
+        "nota_fiscal": "-",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 1,
+                "quantidade_solicitada": 1,
+                "quantidade_separada": 1
+            }
+        ],
+        "nota_fiscal_transferencia": "-",
+        "data_retirada": "04/09/2026 18:25",
+        "separado_por": "Lucas Prado",
+        "data_conclusao": "04/09/2026 18:25",
+        "finalizado_por": "Lucas Prado"
+    },
+    {
+        "id": 35,
+        "nome": "MAF Porto Real",
+        "username": "7585",
+        "registro": "7585",
+        "departamento": "MAF Porto Real",
+        "categoria": "epi",
+        "data": "04/09/2026 18:28",
+        "status": "concluida",
+        "nota_fiscal": "1365",
+        "itens": [
+            {
+                "codigo": "2015",
+                "nome": "Avental de Raspa de Couro para Soldador",
+                "quantidade": 2,
+                "quantidade_solicitada": 2,
+                "quantidade_separada": 2
+            }
+        ],
+        "data_retirada": "04/09/2026 18:29",
+        "separado_por": "Lucas Prado",
+        "nota_fiscal_transferencia": "1365",
+        "data_conclusao": "04/09/2026 18:29",
+        "finalizado_por": "Lucas Prado"
+    },
+    {
+        "id": 36,
+        "nome": "MAF Porto Real",
+        "username": "7585",
+        "registro": "7585",
+        "departamento": "MAF Porto Real",
+        "categoria": "escritorio",
+        "data": "04/09/2026 18:28",
+        "status": "concluida",
+        "nota_fiscal": "1258",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 1,
+                "quantidade_solicitada": 1,
+                "quantidade_separada": 1
+            }
+        ],
+        "data_retirada": "04/09/2026 18:29",
+        "separado_por": "Lucas Prado",
+        "nota_fiscal_transferencia": "1258",
+        "data_conclusao": "04/09/2026 18:30",
+        "finalizado_por": "Lucas Prado"
+    },
+    {
+        "id": 37,
+        "nome": "MAF Porto Real",
+        "username": "7585",
+        "registro": "7585",
+        "departamento": "MAF Porto Real",
+        "categoria": "epi",
+        "data": "04/09/2026 18:33",
+        "status": "concluida",
+        "nota_fiscal": "12345",
+        "itens": [
+            {
+                "codigo": "2017",
+                "nome": "Colete Refletivo de Alta Visibilidade Tam G",
+                "quantidade": 2,
+                "quantidade_solicitada": 2,
+                "quantidade_separada": 1
+            }
+        ],
+        "data_retirada": "04/09/2026 18:33",
+        "separado_por": "Lucas Prado",
+        "nota_fiscal_transferencia": "12345",
+        "data_conclusao": "04/09/2026 18:34",
+        "finalizado_por": "Lucas Prado"
+    },
+    {
+        "id": 38,
+        "nome": "MAF Porto Real",
+        "username": "7585",
+        "registro": "7585",
+        "departamento": "MAF Porto Real",
+        "categoria": "escritorio",
+        "data": "04/09/2026 18:33",
+        "status": "concluida",
+        "nota_fiscal": "12345",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 2,
+                "quantidade_solicitada": 2,
+                "quantidade_separada": 1
+            }
+        ],
+        "data_retirada": "04/09/2026 18:34",
+        "separado_por": "Lucas Prado",
+        "nota_fiscal_transferencia": "12345",
+        "data_conclusao": "04/09/2026 18:34",
+        "finalizado_por": "Lucas Prado"
+    },
+    {
+        "id": 39,
+        "nome": "MAF Porto Real",
+        "username": "7585",
+        "registro": "7585",
+        "departamento": "MAF Porto Real",
+        "categoria": "epi",
+        "data": "04/09/2026 18:42",
+        "status": "concluida",
+        "nota_fiscal": "123685",
+        "itens": [
+            {
+                "codigo": "2014",
+                "nome": "Avental de PVR Impermeavel 120x70cm",
+                "quantidade": 20,
+                "quantidade_solicitada": 20,
+                "quantidade_separada": 18
+            }
+        ],
+        "data_retirada": "04/09/2026 18:43",
+        "separado_por": "teste admin",
+        "nota_fiscal_transferencia": "123685",
+        "data_conclusao": "04/09/2026 18:43",
+        "finalizado_por": "teste admin"
+    },
+    {
+        "id": 40,
+        "nome": "MAF Porto Real",
+        "username": "7585",
+        "registro": "7585",
+        "departamento": "MAF Porto Real",
+        "categoria": "escritorio",
+        "data": "04/09/2026 18:42",
+        "status": "concluida",
+        "nota_fiscal": "41252",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 3,
+                "quantidade_solicitada": 3,
+                "quantidade_separada": 2
+            }
+        ],
+        "data_retirada": "04/09/2026 18:43",
+        "separado_por": "teste admin",
+        "nota_fiscal_transferencia": "41252",
+        "data_conclusao": "04/09/2026 18:43",
+        "finalizado_por": "teste admin"
+    },
+    {
+        "id": 41,
+        "nome": "MAF Porto Real",
+        "username": "7585",
+        "registro": "7585",
+        "departamento": "MAF Porto Real",
+        "categoria": "epi",
+        "data": "04/09/2026 18:45",
+        "status": "concluida",
+        "nota_fiscal": "258",
+        "itens": [
+            {
+                "codigo": "2007",
+                "nome": "Luva de Protecao Multitato Nitrilica Tam G",
+                "quantidade": 2,
+                "quantidade_solicitada": 2,
+                "quantidade_separada": 2
+            }
+        ],
+        "data_retirada": "04/09/2026 18:46",
+        "separado_por": "teste admin",
+        "nota_fiscal_transferencia": "258",
+        "data_conclusao": "04/09/2026 18:46",
+        "finalizado_por": "teste admin"
+    },
+    {
+        "id": 42,
+        "nome": "MAF Porto Real",
+        "username": "7585",
+        "registro": "7585",
+        "departamento": "MAF Porto Real",
+        "categoria": "escritorio",
+        "data": "04/09/2026 18:46",
+        "status": "concluida",
+        "nota_fiscal": "256",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 1,
+                "quantidade_solicitada": 1,
+                "quantidade_separada": 1
+            }
+        ],
+        "data_retirada": "04/09/2026 18:46",
+        "separado_por": "teste admin",
+        "nota_fiscal_transferencia": "256",
+        "data_conclusao": "04/09/2026 18:46",
+        "finalizado_por": "teste admin"
+    },
+    {
+        "id": 43,
+        "nome": "MAF Porto Real",
+        "username": "7585",
+        "registro": "7585",
+        "departamento": "MAF Porto Real",
+        "categoria": "escritorio",
+        "data": "04/09/2026 18:51",
+        "status": "concluida",
+        "nota_fiscal": "NF 12584",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 1,
+                "quantidade_solicitada": 1,
+                "quantidade_separada": 1
+            }
+        ],
+        "data_retirada": "04/09/2026 18:52",
+        "separado_por": "teste admin",
+        "nota_fiscal_transferencia": "NF 12584",
+        "data_conclusao": "04/09/2026 18:52",
+        "finalizado_por": "teste admin"
+    },
+    {
+        "id": 44,
+        "nome": "teste admin",
+        "username": "1111",
+        "registro": "1111",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "data": "04/09/2026 19:05",
+        "status": "concluida",
+        "nota_fiscal": "-",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 5,
+                "quantidade_solicitada": 5,
+                "quantidade_separada": 5
+            }
+        ],
+        "data_retirada": "04/09/2026 19:05",
+        "separado_por": "teste admin",
+        "data_conclusao": "04/09/2026 19:05",
+        "finalizado_por": "teste admin"
+    },
+    {
+        "id": 45,
+        "nome": "teste admin",
+        "username": "1111",
+        "registro": "1111",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "data": "04/09/2026 19:10",
+        "status": "concluida",
+        "nota_fiscal": "-",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 1,
+                "quantidade_solicitada": 1,
+                "quantidade_separada": 1
+            }
+        ],
+        "data_retirada": "04/09/2026 19:11",
+        "separado_por": "teste admin",
+        "data_conclusao": "04/09/2026 19:19",
+        "finalizado_por": "teste admin"
+    },
+    {
+        "id": 46,
+        "nome": "teste admin",
+        "username": "1111",
+        "registro": "1111",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "data": "04/09/2026 19:10",
+        "status": "concluida",
+        "nota_fiscal": "-",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 1,
+                "quantidade_solicitada": 1,
+                "quantidade_separada": 1
+            }
+        ],
+        "data_retirada": "04/09/2026 19:11",
+        "separado_por": "teste admin",
+        "data_conclusao": "04/09/2026 19:20",
+        "finalizado_por": "teste admin"
+    },
+    {
+        "id": 47,
+        "nome": "teste admin",
+        "username": "1111",
+        "registro": "1111",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "data": "04/09/2026 19:17",
+        "status": "concluida",
+        "nota_fiscal": "-",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 1,
+                "quantidade_solicitada": 1,
+                "quantidade_separada": 1
+            }
+        ],
+        "data_retirada": "04/09/2026 19:19",
+        "separado_por": "teste admin",
+        "data_conclusao": "04/09/2026 19:20",
+        "finalizado_por": "teste admin"
+    },
+    {
+        "id": 48,
+        "nome": "teste admin",
+        "username": "1111",
+        "registro": "1111",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "tipo_requisicao": "devolucao",
+        "data": "04/09/2026 19:20",
+        "status": "concluida",
+        "nota_fiscal": "-",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 5,
+                "quantidade_solicitada": 5,
+                "quantidade_separada": 5
+            }
+        ],
+        "data_retirada": "04/09/2026 19:20",
+        "separado_por": "teste admin",
+        "data_conclusao": "04/09/2026 19:20",
+        "finalizado_por": "teste admin"
+    },
+    {
+        "id": 49,
+        "nome": "teste admin",
+        "username": "1111",
+        "registro": "1111",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "tipo_requisicao": "devolucao",
+        "data": "04/09/2026 19:22",
+        "status": "concluida",
+        "nota_fiscal": "-",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 2,
+                "quantidade_solicitada": 2,
+                "quantidade_separada": 2
+            }
+        ],
+        "data_retirada": "04/09/2026 19:22",
+        "separado_por": "teste admin",
+        "data_conclusao": "04/09/2026 19:22",
+        "finalizado_por": "teste admin"
+    },
+    {
+        "id": 50,
+        "nome": "teste admin",
+        "username": "1111",
+        "registro": "1111",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "tipo_requisicao": "devolucao",
+        "data": "04/09/2026 19:23",
+        "status": "concluida",
+        "nota_fiscal": "-",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 5,
+                "quantidade_solicitada": 5,
+                "quantidade_separada": 5
+            }
+        ],
+        "data_retirada": "04/09/2026 19:23",
+        "data_conclusao": "04/09/2026 19:23",
+        "separado_por": "teste admin",
+        "finalizado_por": "teste admin"
+    },
+    {
+        "id": 51,
+        "nome": "teste admin",
+        "username": "1111",
+        "registro": "1111",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "tipo_requisicao": "devolucao",
+        "data": "04/09/2026 19:24",
+        "status": "concluida",
+        "nota_fiscal": "-",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 1,
+                "quantidade_solicitada": 1,
+                "quantidade_separada": 1
+            }
+        ],
+        "data_retirada": "04/09/2026 19:26",
+        "data_conclusao": "04/09/2026 19:26",
+        "separado_por": "teste admin",
+        "finalizado_por": "teste admin"
+    },
+    {
+        "id": 52,
+        "nome": "teste admin",
+        "username": "1111",
+        "registro": "1111",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "tipo_requisicao": "devolucao",
+        "data": "04/09/2026 19:26",
+        "status": "concluida",
+        "nota_fiscal": "-",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 2,
+                "quantidade_solicitada": 2,
+                "quantidade_separada": 2
+            }
+        ],
+        "data_retirada": "04/09/2026 19:26",
+        "data_conclusao": "04/09/2026 19:26",
+        "separado_por": "teste admin",
+        "finalizado_por": "teste admin"
+    },
+    {
+        "id": 53,
+        "nome": "MAF Porto Real",
+        "username": "7585",
+        "registro": "7585",
+        "departamento": "MAF Porto Real",
+        "categoria": "escritorio",
+        "tipo_requisicao": "devolucao",
+        "data": "04/09/2026 19:30",
+        "status": "concluida",
+        "nota_fiscal": "-",
+        "itens": [
+            {
+                "codigo": "25154",
+                "nome": "caneta",
+                "quantidade": 1,
+                "quantidade_solicitada": 1,
+                "quantidade_separada": 1
+            }
+        ],
+        "data_retirada": "04/09/2026 19:31",
+        "data_conclusao": "04/09/2026 19:31",
+        "separado_por": "Teste abastecedor",
+        "finalizado_por": "Teste abastecedor"
     }
 ]

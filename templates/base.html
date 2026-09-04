@@ -253,15 +253,31 @@
             {% if 'user' in session %}
                 {% set permissao = session.user.permissao %}
 
-                <!-- 1. Fazer Requisição (Solicitante e Admin) -->
+                <!-- 1. Nova Requisição (Solicitante e Admin) -->
                 {% if permissao in ['solicitante', 'administrador', 'admin'] %}
                     <a href="{{ url_for('fazer_requisicao') }}" 
                        class="nav-link {% if request.endpoint == 'fazer_requisicao' %}active{% endif %}">
-                        Fazer Requisição
+                        Nova Requisição
                     </a>
                 {% endif %}
 
-                <!-- 2. Requisições Pendentes (Abastecedor e Admin) -->
+                <!-- 2. Devolução de Material de Escritório (Solicitante e Admin) -->
+                {% if permissao in ['solicitante', 'administrador', 'admin'] %}
+                    <a href="{{ url_for('fazer_devolucao') }}" 
+                       class="nav-link {% if request.endpoint == 'fazer_devolucao' %}active{% endif %}">
+                        Devolução
+                    </a>
+                {% endif %}
+
+                <!-- 3. Devoluções Pendentes (Abastecedor e Admin) -->
+                {% if permissao in ['administrador', 'admin', 'abastecedor'] %}
+                    <a href="{{ url_for('devolucoes_pendentes') }}" 
+                       class="nav-link {% if request.endpoint == 'devolucoes_pendentes' %}active{% endif %}">
+                        Devoluções Pendentes
+                    </a>
+                {% endif %}
+
+                <!-- 4. Requisições Pendentes (Abastecedor e Admin) -->
                 {% if permissao in ['administrador', 'admin', 'abastecedor'] %}
                     <a href="{{ url_for('pendentes') }}" 
                        class="nav-link {% if request.endpoint == 'pendentes' %}active{% endif %}">
@@ -269,7 +285,7 @@
                     </a>
                 {% endif %}
 
-                <!-- 3. Requisições Separadas (Abastecedor e Admin) -->
+                <!-- 5. Requisições Separadas (Abastecedor e Admin) -->
                 {% if permissao in ['administrador', 'admin', 'abastecedor'] %}
                     <a href="{{ url_for('separados') }}" 
                        class="nav-link {% if request.endpoint == 'separados' %}active{% endif %}">
@@ -277,53 +293,53 @@
                     </a>
                 {% endif %}
 
-                <!-- 4. Posição de Estoque (Abastecedor e Admin) -->
+                <!-- 6. Posição de Estoque (Abastecedor e Admin) -->
                 {% if permissao in ['administrador', 'admin', 'abastecedor'] %}
                     <a href="{{ url_for('ver_estoque') }}" 
                        class="nav-link {% if request.endpoint == 'ver_estoque' %}active{% endif %}">
-                         Posição de Estoque
+                        Posição do Estoque
                     </a>
                 {% endif %}
 
-                <!-- 5. Movimentar Estoque - Entrada/Saída (Abastecedor e Admin) -->
+                <!-- 7. Movimentar Estoque - Entrada/Saída (Abastecedor e Admin) -->
                 {% if permissao in ['administrador', 'admin', 'abastecedor'] %}
                     <a href="{{ url_for('movimentar_estoque') }}" 
                        class="nav-link {% if request.endpoint == 'movimentar_estoque' %}active{% endif %}">
-                         Movimentar Estoque
+                        Entrada/Saída Estoque
                     </a>
                 {% endif %}
 
-                <!-- 6. Histórico de Movimentações de Estoque (Abastecedor e Admin) -->
+                <!-- 8. Histórico de Movimentações de Estoque (Abastecedor e Admin) -->
                 {% if permissao in ['administrador', 'admin', 'abastecedor'] %}
                     <a href="{{ url_for('historico_movimentacoes') }}" 
                        class="nav-link {% if request.endpoint == 'historico_movimentacoes' %}active{% endif %}">
-                         Histórico de Estoque
+                        Histórico de Movimentações
                     </a>
                 {% endif %}
 
-                <!-- 7. Histórico de Requisições (Todos) -->
+                <!-- 9. Histórico de Requisições (Todos) -->
                 <a href="{{ url_for('historico') }}" 
                    class="nav-link {% if request.endpoint in ['historico', 'ver_requisicao'] %}active{% endif %}">
                     Histórico Requisições
                 </a>
 
-                <!-- 8. Gerenciar Materiais Escritório (Abastecedor e Admin) -->
+                <!-- 10. Gerenciar Materiais Escritório (Abastecedor e Admin) -->
                 {% if permissao in ['administrador', 'admin', 'abastecedor'] %}
                     <a href="{{ url_for('gerenciar_materiais_escritorio') }}" 
                        class="nav-link {% if request.endpoint == 'gerenciar_materiais_escritorio' %}active{% endif %}">
-                        Materiais Escritório
+                        Gerenciar Materiais Escritório
                     </a>
                 {% endif %}
 
-                <!-- 9. Gerenciar Materiais EPI (Abastecedor e Admin) -->
+                <!-- 11. Gerenciar Materiais EPI (Abastecedor e Admin) -->
                 {% if permissao in ['administrador', 'admin', 'abastecedor'] %}
                     <a href="{{ url_for('gerenciar_materiais_epi') }}" 
                        class="nav-link {% if request.endpoint == 'gerenciar_materiais_epi' %}active{% endif %}">
-                        Materiais EPI
+                        Gerenciar Materiais EPI
                     </a>
                 {% endif %}
 
-                <!-- 10. Gerenciar Usuários (Apenas Admin) -->
+                <!-- 12. Gerenciar Usuários (Apenas Admin) -->
                 {% if permissao in ['administrador', 'admin'] %}
                     <a href="{{ url_for('gerenciar_usuarios') }}" 
                        class="nav-link {% if request.endpoint == 'gerenciar_usuarios' %}active{% endif %}">
@@ -331,7 +347,7 @@
                     </a>
                 {% endif %}
 
-                <!-- 11. Gerenciar Departamentos (Apenas Admin) -->
+                <!-- 13. Gerenciar Departamentos (Apenas Admin) -->
                 {% if permissao in ['administrador', 'admin'] %}
                     <a href="{{ url_for('gerenciar_departamentos') }}" 
                        class="nav-link {% if request.endpoint == 'gerenciar_departamentos' %}active{% endif %}">
@@ -339,7 +355,7 @@
                     </a>
                 {% endif %}
 
-                <!-- 12. Trocar Senha (Todos) -->
+                <!-- 14. Trocar Senha (Todos) -->
                 <a href="{{ url_for('trocar_senha') }}" 
                    class="nav-link {% if request.endpoint == 'trocar_senha' %}active{% endif %}">
                     Trocar Senha

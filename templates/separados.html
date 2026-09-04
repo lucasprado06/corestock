@@ -20,6 +20,13 @@
         </thead>
         <tbody>
             {% for requisicao in requisicoes %}
+            {% set depto_lower = (requisicao.departamento or '') | lower %}
+            {% set eh_maf = 'maf porto real' in depto_lower or 'maf betim' in depto_lower %}
+            {% set eh_epi = requisicao.categoria == 'epi' %}
+            
+            {% set nf_salva = requisicao.nota_fiscal or requisicao.nota_fiscal_transferencia or '' %}
+            {% set nf_limpa = '' if nf_salva.strip() == '-' else nf_salva %}
+
             <tr>
                 <td><strong>#{{ requisicao.id }}</strong></td>
                 <td>{{ requisicao.data }}</td>
@@ -27,7 +34,7 @@
                 <td>{{ requisicao.departamento }}</td>
                 
                 <td style="font-weight: 500; color: #334155;">
-                    {% if requisicao.categoria == 'epi' %}
+                    {% if eh_epi %}
                         EPI
                     {% else %}
                         Escritório
@@ -40,15 +47,23 @@
                 <td>{{ requisicao.data_retirada or '-' }}</td>
                 
                 <td>
-                    {% if requisicao.categoria == 'epi' %}
-                        <!-- Botão para EPI: Abre modal de Nota Fiscal + Senha do Abastecedor -->
-                        <button type="button" class="btn-primary" onclick="abrirModalEPI('{{ requisicao.id }}')">
-                            Despachar NF
+                    {% if eh_maf or eh_epi %}
+                        <!-- Botão para MAF / EPI: Despacho via Nota Fiscal (Sem pré-preenchimento de traço) -->
+                        <button type="button" 
+                                class="btn-primary" 
+                                data-id="{{ requisicao.id }}" 
+                                data-nf="{{ nf_limpa }}" 
+                                onclick="abrirModalMAF(this)">
+                            📄 Despachar NF
                         </button>
                     {% else %}
-                        <!-- Botão para Escritório: Abre modal de autenticação presencial do solicitante -->
-                        <button type="button" class="btn-success" onclick="abrirModalSolicitante('{{ requisicao.id }}', '{{ requisicao.registro }}')">
-                            Finalizar Entrega
+                        <!-- Botão para Outros Departamentos: Finalização com Usuário e Senha -->
+                        <button type="button" 
+                                class="btn-success" 
+                                data-id="{{ requisicao.id }}" 
+                                data-username="{{ requisicao.username or requisicao.usuario or '' }}" 
+                                onclick="abrirModalSolicitante(this)">
+                            🚚 Finalizar Entrega
                         </button>
                     {% endif %}
                 </td>
@@ -61,50 +76,47 @@
         </tbody>
     </table>
 
-    <!-- Modal 1: Lançamento de Nota Fiscal (para EPI / Despacho Remoto) -->
-    <div id="modalEPI" class="modal-backdrop">
+    <!-- Modal 1: Despacho direto via Nota Fiscal (MAF e EPIs) -->
+    <div id="modalMAF" class="modal-backdrop">
         <div class="modal-box">
-            <h3 class="modal-title">Lançamento de Nota Fiscal (EPI)</h3>
-            <p class="modal-subtitle">Informe o número da NF de Transferência e confirme com a sua senha.</p>
+            <h3 class="modal-title">Despacho de Requisição</h3>
+            <p class="modal-subtitle">Informe ou confirme o número da Nota Fiscal para concluir o despacho da solicitação.</p>
             
             <form action="{{ url_for('concluir_requisicao') }}" method="post">
-                <input type="hidden" name="requisicao_id" id="modal_epi_requisicao_id">
+                <input type="hidden" name="requisicao_id" id="modal_maf_requisicao_id">
+                <input type="hidden" name="acao_final" value="concluir_direto">
                 
                 <div class="form-group-modal">
-                    <label>Número da Nota Fiscal:</label>
-                    <input type="text" name="numero_nf" placeholder="Ex: NF-102938" required>
-                </div>
-
-                <div class="form-group-modal">
-                    <label>Sua Senha (Abastecedor):</label>
-                    <input type="password" name="senha_abastecedor" placeholder="••••••••" required>
+                    <label>Número da Nota Fiscal (Transferência/Saída):</label>
+                    <input type="text" name="nota_fiscal" id="modal_maf_nota_fiscal" placeholder="Ex: NF-102938" required>
                 </div>
 
                 <div class="modal-actions">
-                    <button type="button" class="btn-cancel" onclick="fecharModalEPI()">Cancelar</button>
-                    <button type="submit" class="btn-primary">Confirmar Envio</button>
+                    <button type="button" class="btn-cancel" onclick="fecharModalMAF()">Cancelar</button>
+                    <button type="submit" class="btn-primary">Confirmar Despacho</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Modal 2: Validação de Senha Presencial (para Escritório) -->
+    <!-- Modal 2: Autenticação exclusiva por Usuário e Senha (Demais Departamentos) -->
     <div id="modalSolicitante" class="modal-backdrop">
         <div class="modal-box">
             <h3 class="modal-title">Autenticação do Solicitante</h3>
-            <p class="modal-subtitle">Confirme a matrícula e a senha do solicitante para concluir a entrega presencial.</p>
+            <p class="modal-subtitle">Informe o usuário e a senha do solicitante para assinar a entrega presencial.</p>
             
             <form action="{{ url_for('concluir_requisicao') }}" method="post">
                 <input type="hidden" name="requisicao_id" id="modal_solic_requisicao_id">
+                <input type="hidden" name="acao_final" value="concluir">
                 
                 <div class="form-group-modal">
-                    <label>Matrícula / Registro:</label>
-                    <input type="text" name="registro_solicitante" id="modal_solic_registro" required>
+                    <label>Usuário do Solicitante:</label>
+                    <input type="text" name="auth_usuario" id="modal_solic_usuario" placeholder="Ex: usuario.sobrenome" required>
                 </div>
 
                 <div class="form-group-modal">
                     <label>Senha do Solicitante:</label>
-                    <input type="password" name="senha_solicitante" placeholder="••••••••" required>
+                    <input type="password" name="auth_senha" placeholder="••••••••" required>
                 </div>
 
                 <div class="modal-actions">
@@ -116,18 +128,36 @@
     </div>
 
     <script>
-        function abrirModalEPI(requisicaoId) {
-            document.getElementById('modal_epi_requisicao_id').value = requisicaoId;
-            document.getElementById('modalEPI').style.display = 'flex';
+        function abrirModalMAF(botao) {
+            const requisicaoId = botao.getAttribute('data-id');
+            let notaFiscalAtual = (botao.getAttribute('data-nf') || '').trim();
+
+            // Trata traço e nulos para deixar o campo totalmente limpo
+            if (notaFiscalAtual === '-' || notaFiscalAtual.toLowerCase() === 'none') {
+                notaFiscalAtual = '';
+            }
+
+            document.getElementById('modal_maf_requisicao_id').value = requisicaoId;
+            document.getElementById('modal_maf_nota_fiscal').value = notaFiscalAtual;
+            document.getElementById('modalMAF').style.display = 'flex';
+            
+            // Coloca o foco diretamente no campo da nota fiscal
+            setTimeout(() => {
+                const inputNF = document.getElementById('modal_maf_nota_fiscal');
+                if (inputNF) inputNF.focus();
+            }, 100);
         }
 
-        function fecharModalEPI() {
-            document.getElementById('modalEPI').style.display = 'none';
+        function fecharModalMAF() {
+            document.getElementById('modalMAF').style.display = 'none';
         }
 
-        function abrirModalSolicitante(requisicaoId, registro) {
+        function abrirModalSolicitante(botao) {
+            const requisicaoId = botao.getAttribute('data-id');
+            const username = botao.getAttribute('data-username');
+
             document.getElementById('modal_solic_requisicao_id').value = requisicaoId;
-            document.getElementById('modal_solic_registro').value = registro;
+            document.getElementById('modal_solic_usuario').value = username || '';
             document.getElementById('modalSolicitante').style.display = 'flex';
         }
 
@@ -137,6 +167,33 @@
     </script>
 
     <style>
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .table th, .table td {
+            border: 1px solid #cbd5e1;
+            padding: 12px;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        .table th {
+            background-color: #0a2540;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .table tbody tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f1f5f9;
+        }
+
         .btn-info {
             background-color: #f1f5f9;
             color: #0284c7;
@@ -187,7 +244,6 @@
             background-color: #15803d;
         }
 
-        /* Estilo dos Modais */
         .modal-backdrop {
             display: none;
             position: fixed;

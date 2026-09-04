@@ -13,7 +13,7 @@
             <label style="display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px; color: #334155;">Buscar no Histórico:</label>
             <div style="position: relative; display: flex; align-items: center;">
                 <span style="position: absolute; left: 12px; color: #94a3b8; font-size: 16px;">🔍</span>
-                <input type="text" id="inputBusca" onkeyup="filtrarTabela()" placeholder="Buscar por ID, NF, solicitante, departamento, status..." 
+                <input type="text" id="inputBusca" onkeyup="filtrarTabela()" placeholder="Buscar por ID, NF, solicitante, departamento, operação, status..." 
                        style="width: 100%; padding: 10px 12px 10px 38px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; outline: none; background-color: #ffffff;">
             </div>
         </div>
@@ -45,6 +45,7 @@
                 <th>ID</th>
                 <th>Data da Requisição</th>
                 <th>Status</th>
+                <th>Operação</th>
                 <th>Tipo</th>
                 <th>Nota Fiscal</th>
                 {% if session.user.permissao in ['administrador', 'admin', 'abastecedor'] %}
@@ -70,7 +71,17 @@
                         <span style="color: #15803d;">Concluída</span>
                     {% endif %}
                 </td>
+
+                <!-- Nova Coluna: Operação (Solicitação vs Devolução) -->
+                <td>
+                    {% if requisicao.tipo_requisicao == 'devolucao' %}
+                        <span style="color: #16a34a; font-weight: 600;">Devolução</span>
+                    {% else %}
+                        <span style="color: #475569; font-weight: 500;">Solicitação</span>
+                    {% endif %}
+                </td>
                 
+                <!-- Coluna Tipo (Categoria) -->
                 <td style="font-weight: 500; color: #334155;">
                     {% if requisicao.categoria == 'epi' %}
                         EPI
@@ -79,7 +90,7 @@
                     {% endif %}
                 </td>
 
-                <!-- Coluna da Nota Fiscal padronizada em texto simples -->
+                <!-- Coluna da Nota Fiscal -->
                 <td style="font-weight: 500; color: #334155;">
                     {{ requisicao.nota_fiscal or '-' }}
                 </td>
@@ -125,7 +136,7 @@
             </tr>
             {% else %}
             <tr>
-                {% set colspan_count = 10 if session.user.permissao in ['administrador', 'admin', 'abastecedor'] else 8 %}
+                {% set colspan_count = 11 if session.user.permissao in ['administrador', 'admin', 'abastecedor'] else 9 %}
                 <td colspan="{{ colspan_count }}" style="text-align: center; color: #64748b;">Não há histórico de requisições.</td>
             </tr>
             {% endfor %}
