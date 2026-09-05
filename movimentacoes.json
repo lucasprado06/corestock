@@ -622,5 +622,31 @@
         "motivo": "Entrada por Devolução da Requisição #53",
         "requisicao_id": 53,
         "usuario": "Teste abastecedor"
+    },
+    {
+        "id": 49,
+        "data": "05/09/2026 08:00",
+        "codigo_material": "1015",
+        "descricao_material": "Tesoura de Média em Aço Inox 17cm",
+        "categoria": "escritorio",
+        "tipo": "Entrada Manual",
+        "quantidade": 50,
+        "nota_fiscal": "-",
+        "motivo": "ajuste",
+        "requisicao_id": null,
+        "usuario": "Teste abastecedor"
+    },
+    {
+        "id": 50,
+        "data": "05/09/2026 08:01",
+        "codigo_material": "1015",
+        "descricao_material": "Tesoura de Média em Aço Inox 17cm",
+        "categoria": "escritorio",
+        "tipo": "Entrada Manual",
+        "quantidade": 20,
+        "nota_fiscal": "-",
+        "motivo": "ajuste",
+        "requisicao_id": null,
+        "usuario": "Teste abastecedor"
     }
 ]

@@ -7,7 +7,10 @@
         <h1 style="color: #0a2540; margin: 0;">Posição de Estoque</h1>
         
         {% if session.user.permissao in ['administrador', 'admin', 'abastecedor'] %}
-        <div style="display: flex; gap: 10px;">
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a href="{{ url_for('exportar_estoque_excel') }}" class="btn-excel-action">
+                📊 Exportar Excel
+            </a>
             <a href="{{ url_for('movimentar_estoque') }}" class="btn-primary-action">
                 🔄 Movimentar Estoque (Entrada/Saída)
             </a>
@@ -18,7 +21,7 @@
         {% endif %}
     </div>
 
-    <!-- Cards Informativos de Resumo (Atualizados via JS) -->
+    <!-- Cards Informativos de Resumo (5 Cards com Valor Total) -->
     <div class="summary-cards">
         <div class="card-summary card-blue">
             <span class="card-title">Total de Itens</span>
@@ -27,6 +30,10 @@
         <div class="card-summary card-green">
             <span class="card-title">Saldo Total em Estoque</span>
             <span class="card-value"><span id="totalSaldoCard">0</span> <small>un.</small></span>
+        </div>
+        <div class="card-summary card-purple">
+            <span class="card-title">Valor Total em Estoque</span>
+            <span class="card-value">R$ <span id="totalValorCard">0,00</span></span>
         </div>
         <div class="card-summary card-yellow">
             <span class="card-title">Estoque Baixo (≤ Mínimo)</span>
@@ -61,18 +68,22 @@
     <table class="table-estoque" id="tabelaEstoque">
         <thead>
             <tr>
-                <th style="width: 140px;">Part Number</th>
+                <th style="width: 130px;">Part Number</th>
                 <th>Descrição do Material</th>
-                <th style="width: 140px; text-align: center;">Categoria</th>
-                <th style="width: 130px; text-align: center;">Estoque Mín.</th>
-                <th style="width: 140px; text-align: center;">Saldo em Estoque</th>
-                <th style="width: 140px; text-align: center;">Status</th>
+                <th style="width: 110px; text-align: center;">Categoria</th>
+                <th style="width: 100px; text-align: center;">Estoque Mín.</th>
+                <th style="width: 110px; text-align: center;">Saldo Atual</th>
+                <th style="width: 120px; text-align: right;">Preço Unit.</th>
+                <th style="width: 130px; text-align: right;">Valor Total</th>
+                <th style="width: 120px; text-align: center;">Status</th>
             </tr>
         </thead>
         <tbody>
             {% for item in materiais %}
             {% set saldo = item.saldo if item.saldo is defined else 0 %}
             {% set est_min = item.estoque_minimo if item.estoque_minimo is defined else 0 %}
+            {% set preco = item.preco if item.preco is defined else 0.0 %}
+            {% set valor_total_item = saldo * preco %}
             
             {% if saldo == 0 %}
                 {% set status_tag = 'sem_estoque' %}
@@ -85,6 +96,7 @@
             <tr data-categoria="{{ item.categoria or 'escritorio' }}" 
                 data-saldo="{{ saldo }}" 
                 data-estmin="{{ est_min }}" 
+                data-preco="{{ preco }}"
                 data-status="{{ status_tag }}"
                 class="linha-material {% if saldo == 0 %}row-zerado{% elif saldo <= est_min %}row-baixo{% endif %}">
                 
@@ -103,6 +115,12 @@
                         {{ saldo }}
                     </span>
                 </td>
+                <td style="text-align: right; font-weight: 600; color: #334155;">
+                    R$ {{ "%.2f"|format(preco)|replace('.', ',') }}
+                </td>
+                <td style="text-align: right; font-weight: 700; color: #0a2540;">
+                    R$ {{ "%.2f"|format(valor_total_item)|replace('.', ',') }}
+                </td>
                 <td style="text-align: center;">
                     {% if saldo == 0 %}
                         <span class="status-text text-red">SEM ESTOQUE</span>
@@ -115,7 +133,7 @@
             </tr>
             {% else %}
             <tr>
-                <td colspan="6" style="text-align: center; color: #64748b; padding: 20px;">
+                <td colspan="8" style="text-align: center; color: #64748b; padding: 20px;">
                     Nenhum material cadastrado no sistema.
                 </td>
             </tr>
@@ -128,6 +146,24 @@
     </p>
 
     <style>
+        .btn-excel-action {
+            background-color: #16a34a;
+            color: #ffffff;
+            padding: 9px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-excel-action:hover {
+            background-color: #15803d;
+        }
+
         .btn-primary-action {
             background-color: #0284c7;
             color: #ffffff;
@@ -159,11 +195,11 @@
             background-color: #e2e8f0;
         }
 
-        /* Summary Cards Grid */
+        /* Summary Cards Grid (5 Cards) */
         .summary-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
             margin-bottom: 25px;
         }
 
@@ -171,14 +207,14 @@
             background: #ffffff;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
-            padding: 16px;
+            padding: 14px;
             display: flex;
             flex-direction: column;
             box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
 
         .card-summary .card-title {
-            font-size: 12px;
+            font-size: 11px;
             color: #64748b;
             text-transform: uppercase;
             font-weight: 700;
@@ -186,19 +222,20 @@
         }
 
         .card-summary .card-value {
-            font-size: 26px;
+            font-size: 22px;
             font-weight: 800;
             color: #0a2540;
         }
 
         .card-summary .card-value small {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             color: #64748b;
         }
 
         .card-blue { border-left: 4px solid #0284c7; }
         .card-green { border-left: 4px solid #16a34a; }
+        .card-purple { border-left: 4px solid #7c3aed; }
         .card-yellow { border-left: 4px solid #eab308; }
         .card-red { border-left: 4px solid #dc2626; }
 
@@ -303,7 +340,7 @@
         }
 
         .text-cat {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 700;
             letter-spacing: 0.5px;
         }
@@ -341,6 +378,7 @@
 
             let totalItens = 0;
             let totalSaldo = 0;
+            let totalValor = 0.0;
             let baixos = 0;
             let zerados = 0;
             let visiveis = 0;
@@ -348,6 +386,7 @@
             linhas.forEach(linha => {
                 const saldo = parseInt(linha.getAttribute('data-saldo') || '0', 10);
                 const estMin = parseInt(linha.getAttribute('data-estmin') || '0', 10);
+                const preco = parseFloat(linha.getAttribute('data-preco') || '0.0');
                 const statusLinha = linha.getAttribute('data-status') || 'com_estoque';
                 const textoLinha = linha.textContent.toLowerCase();
 
@@ -359,7 +398,6 @@
                 if (statusSelecionado === 'todos') {
                     bateStatus = true;
                 } else if (statusSelecionado === 'com_estoque') {
-                    // Exibe tudo o que tem saldo > 0 (normais e baixos)
                     bateStatus = (statusLinha === 'com_estoque' || statusLinha === 'estoque_baixo');
                 } else {
                     bateStatus = (statusLinha === statusSelecionado);
@@ -370,9 +408,10 @@
                     linha.style.display = '';
                     visiveis++;
 
-                    // Acumula métricas dos cards apenas para os itens filtrados
+                    // Acumula métricas apenas dos itens visíveis/filtrados
                     totalItens++;
                     totalSaldo += saldo;
+                    totalValor += (saldo * preco);
 
                     if (saldo === 0) {
                         zerados++;
@@ -387,6 +426,13 @@
             // Atualiza os cards no topo com base na visão atual
             document.getElementById('totalItensCard').innerText = totalItens;
             document.getElementById('totalSaldoCard').innerText = totalSaldo;
+            
+            // Formata o valor monetário acumulado
+            document.getElementById('totalValorCard').innerText = totalValor.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+
             document.getElementById('baixosCard').innerText = baixos;
             document.getElementById('zeradosCard').innerText = zerados;
 

@@ -127,10 +127,10 @@
     {
         "codigo": "25154",
         "descricao": "caneta",
-        "quantidade_maxima": 20,
         "categoria": "escritorio",
         "saldo": 18,
-        "estoque_minimo": 20
+        "estoque_minimo": 20,
+        "preco": 1.25
     },
     {
         "codigo": "2019",
@@ -233,8 +233,10 @@
     {
         "codigo": "1015",
         "descricao": "Tesoura de M\u00e9dia em A\u00e7o Inox 17cm",
-        "quantidade_maxima": 1,
-        "categoria": "escritorio"
+        "categoria": "escritorio",
+        "saldo": 70,
+        "estoque_minimo": 50,
+        "preco": 4.2
     },
     {
         "codigo": "1016",

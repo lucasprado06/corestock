@@ -1083,7 +1083,7 @@ def gerenciar_usuarios():
         departamento = request.form.get('departamento')
         permissao = request.form.get('permissao')
         pode_solicitar_epi = 'pode_solicitar_epi' in request.form
-        senha_inicial = "Mudar123@"
+        senha_inicial = "Plastic@123"  # Senha padrão inicial para novos usuários
 
         if any(str(u.get('username', '')).strip().lower() == username for u in usuarios):
             flash('Nome de usuário já cadastrado! Escolha outro.', 'danger')
@@ -1108,6 +1108,51 @@ def gerenciar_usuarios():
 
     return render_template('gerenciar_usuarios.html', usuarios=usuarios, departamentos=departamentos)
 
+@app.route('/exportar_estoque_excel')
+@login_required
+@gestor_required
+def exportar_estoque_excel():
+    materiais = carregar_materiais()
+    
+    dados_excel = []
+    for item in materiais:
+        saldo = item.get('saldo', 0)
+        est_min = item.get('estoque_minimo', 0)
+        preco = float(item.get('preco', 0.0))
+        valor_total = saldo * preco
+        
+        if saldo == 0:
+            status = 'SEM ESTOQUE'
+        elif saldo <= est_min:
+            status = 'ESTOQUE BAIXO'
+        else:
+            status = 'NORMAL'
+
+        dados_excel.append({
+            'Part Number (Código)': item.get('codigo', '-'),
+            'Descrição do Material': item.get('descricao', '-'),
+            'Categoria': item.get('categoria', 'escritorio').upper(),
+            'Estoque Mínimo': est_min,
+            'Saldo Atual': saldo,
+            'Preço Unitário (R$)': f"R$ {preco:.2f}".replace('.', ','),
+            'Valor Total em Estoque (R$)': f"R$ {valor_total:.2f}".replace('.', ','),
+            'Status': status
+        })
+
+    df = pd.DataFrame(dados_excel)
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Posição de Estoque')
+    
+    output.seek(0)
+    nome_arquivo = f"Posicao_Estoque_CoreStock_{datetime.now().strftime('%d_%m_%Y')}.xlsx"
+    
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name=nome_arquivo
+    )
 
 @app.route('/resetar_senha/<registro>', methods=['POST'])
 @login_required
@@ -1154,37 +1199,45 @@ def excluir_usuario():
 @login_required
 @gestor_required
 def gerenciar_materiais_escritorio():
+    materiais = carregar_materiais()
+    
     if request.method == 'POST':
         codigo = request.form.get('codigo', '').strip()
         descricao = request.form.get('descricao', '').strip()
-        estoque_minimo = request.form.get('estoque_minimo', '0')
-
+        est_min = int(request.form.get('estoque_minimo', 0))
+        
+        # Trata o valor de preço enviado pelo formulário
         try:
-            est_min = int(estoque_minimo)
+            preco_raw = request.form.get('preco', '0').replace(',', '.')
+            preco = float(preco_raw)
         except ValueError:
-            est_min = 0
+            preco = 0.0
 
-        materiais = carregar_materiais()
+        mat_existente = next((m for m in materiais if str(m['codigo']) == codigo), None)
         
-        if any(str(m['codigo']).strip() == codigo for m in materiais if m.get('categoria', 'escritorio') == 'escritorio'):
-            flash('Código de material de escritório já cadastrado!', 'danger')
-            return redirect(url_for('gerenciar_materiais_escritorio'))
-
-        novo_material = {
-            "codigo": codigo,
-            "descricao": descricao,
-            "estoque_minimo": est_min,
-            "saldo": 0,
-            "categoria": "escritorio"
-        }
-        materiais.append(novo_material)
+        if mat_existente:
+            mat_existente['descricao'] = descricao
+            mat_existente['estoque_minimo'] = est_min
+            mat_existente['preco'] = preco
+            flash(f'Material {codigo} atualizado com sucesso!', 'success')
+        else:
+            novo_material = {
+                'codigo': codigo,
+                'descricao': descricao,
+                'categoria': 'escritorio',
+                'saldo': 0,
+                'estoque_minimo': est_min,
+                'preco': preco
+            }
+            materiais.append(novo_material)
+            flash(f'Material {codigo} cadastrado com sucesso!', 'success')
+            
         salvar_materiais(materiais)
-        flash('Material de escritório adicionado com sucesso!', 'success')
         return redirect(url_for('gerenciar_materiais_escritorio'))
-        
-    materiais = carregar_materiais()
+
     materiais_escritorio = [m for m in materiais if m.get('categoria', 'escritorio') == 'escritorio']
     return render_template('gerenciar_materiais_escritorio.html', materiais=materiais_escritorio)
+
 @app.route('/gerenciar_materiais_epi', methods=['GET', 'POST'])
 @login_required
 @gestor_required
@@ -1254,12 +1307,19 @@ def editar_material(codigo_material):
             flash('EPI atualizado com sucesso!', 'success')
             return redirect(url_for('gerenciar_materiais_epi'))
         else:
-            # Atualiza apenas o Estoque Mínimo para Material de Escritório
+            # Atualiza Estoque Mínimo para Material de Escritório
             est_min_raw = request.form.get('estoque_minimo', '0')
             try:
                 material['estoque_minimo'] = int(est_min_raw)
             except ValueError:
                 material['estoque_minimo'] = 0
+
+            # Atualiza o Preço Unitário para Material de Escritório
+            preco_raw = request.form.get('preco', '0').replace(',', '.').strip()
+            try:
+                material['preco'] = float(preco_raw)
+            except ValueError:
+                material['preco'] = 0.0
 
             # Remove quantidade_maxima se ainda existia do modelo antigo
             material.pop('quantidade_maxima', None)
@@ -1347,91 +1407,80 @@ def importar_materiais_csv():
     novos_cadastrados = 0
 
     try:
+        rows = []
         if filename.endswith('.xlsx'):
             workbook = openpyxl.load_workbook(file, data_only=True)
             sheet = workbook.active
             rows = list(sheet.iter_rows(values_only=True))
-
-            if not rows:
-                flash('A planilha enviada está vazia.', 'warning')
-                return redirect(request.referrer or url_for('gerenciar_materiais_escritorio'))
-
-            header = [normalizar_texto(cell) for cell in rows[0]]
-
-            idx_codigo = next((i for i, h in enumerate(header) if 'cod' in h), 0)
-            idx_desc = next((i for i, h in enumerate(header) if 'desc' in h or 'nome' in h or 'item' in h), 1)
-            idx_qtd = next((i for i, h in enumerate(header) if 'qtd' in h or 'quant' in h or 'max' in h), 2)
-
-            for row in rows[1:]:
-                if not row or len(row) <= idx_codigo:
-                    continue
-                
-                codigo_raw = row[idx_codigo]
-                if codigo_raw is None:
-                    continue
-
-                codigo = str(codigo_raw).strip()
-                descricao = str(row[idx_desc]).strip() if len(row) > idx_desc and row[idx_desc] is not None else ""
-                qtd_max_raw = row[idx_qtd] if len(row) > idx_qtd and row[idx_qtd] is not None else 1
-
-                try:
-                    qtd_max = int(float(str(qtd_max_raw).replace(',', '.')))
-                except ValueError:
-                    qtd_max = 1
-
-                if codigo and descricao and (codigo.lower() not in codigos_existentes):
-                    materiais.append({
-                        "codigo": codigo,
-                        "descricao": descricao,
-                        "quantidade_maxima": qtd_max,
-                        "categoria": categoria
-                    })
-                    codigos_existentes.add(codigo.lower())
-                    novos_cadastrados += 1
-
         elif filename.endswith('.csv'):
             content = file.stream.read().decode("utf-8-sig", errors="ignore")
             delimiter = ';' if ';' in content else ','
             stream = io.StringIO(content)
             reader = csv.reader(stream, delimiter=delimiter)
             rows = list(reader)
-
-            if not rows:
-                flash('O arquivo CSV está vazio.', 'warning')
-                return redirect(request.referrer or url_for('gerenciar_materiais_escritorio'))
-
-            header = [normalizar_texto(cell) for cell in rows[0]]
-
-            idx_codigo = next((i for i, h in enumerate(header) if 'cod' in h), 0)
-            idx_desc = next((i for i, h in enumerate(header) if 'desc' in h or 'nome' in h or 'item' in h), 1)
-            idx_qtd = next((i for i, h in enumerate(header) if 'qtd' in h or 'quant' in h or 'max' in h), 2)
-
-            for row in rows[1:]:
-                if not row or len(row) <= idx_codigo:
-                    continue
-
-                codigo = str(row[idx_codigo]).strip()
-                descricao = str(row[idx_desc]).strip() if len(row) > idx_desc else ""
-                qtd_max_raw = row[idx_qtd] if len(row) > idx_qtd else 1
-
-                try:
-                    qtd_max = int(float(str(qtd_max_raw).replace(',', '.')))
-                except ValueError:
-                    qtd_max = 1
-
-                if codigo and descricao and (codigo.lower() not in codigos_existentes):
-                    materiais.append({
-                        "codigo": codigo,
-                        "descricao": descricao,
-                        "quantidade_maxima": qtd_max,
-                        "categoria": categoria
-                    })
-                    codigos_existentes.add(codigo.lower())
-                    novos_cadastrados += 1
-
         else:
             flash('Formato inválido. Por favor, envie um arquivo .csv ou .xlsx (Excel).', 'danger')
             return redirect(request.referrer or url_for('gerenciar_materiais_escritorio'))
+
+        if not rows:
+            flash('O arquivo enviado está vazio.', 'warning')
+            return redirect(request.referrer or url_for('gerenciar_materiais_escritorio'))
+
+        # Normaliza os cabeçalhos
+        header = [normalizar_texto(cell) for cell in rows[0]]
+
+        # Identifica dinamicamente os índices das colunas pelos nomes esperados
+        idx_codigo = next((i for i, h in enumerate(header) if 'cod' in h), 0)
+        idx_desc = next((i for i, h in enumerate(header) if 'desc' in h or 'nome' in h or 'item' in h), 1)
+        idx_qtd = next((i for i, h in enumerate(header) if 'qtd' in h or 'quant' in h or 'max' in h or 'min' in h or 'est' in h), 2)
+        idx_preco = next((i for i, h in enumerate(header) if 'prec' in h or 'val' in h or 'r$' in h), None)
+
+        for row in rows[1:]:
+            if not row or len(row) <= idx_codigo:
+                continue
+
+            codigo_raw = row[idx_codigo]
+            if codigo_raw is None:
+                continue
+
+            codigo = str(codigo_raw).strip()
+            descricao = str(row[idx_desc]).strip() if len(row) > idx_desc and row[idx_desc] is not None else ""
+            qtd_raw = row[idx_qtd] if len(row) > idx_qtd and row[idx_qtd] is not None else (1 if categoria == 'epi' else 0)
+
+            # Processa Quantidade (Qtd Máxima para EPI / Estoque Mínimo para Escritório)
+            try:
+                qtd_val = int(float(str(qtd_raw).replace(',', '.')))
+            except (ValueError, TypeError):
+                qtd_val = 1 if categoria == 'epi' else 0
+
+            # Processa o Preço Unitário (se houver a coluna na planilha)
+            preco_val = 0.0
+            if idx_preco is not None and len(row) > idx_preco and row[idx_preco] is not None:
+                try:
+                    preco_raw = str(row[idx_preco]).replace('R$', '').replace(' ', '').replace(',', '.').strip()
+                    preco_val = float(preco_raw)
+                except (ValueError, TypeError):
+                    preco_val = 0.0
+
+            # Se o material ainda não foi cadastrado, insere no inventário
+            if codigo and descricao and (codigo.lower() not in codigos_existentes):
+                novo_item = {
+                    "codigo": codigo,
+                    "descricao": descricao,
+                    "categoria": categoria,
+                    "saldo": 0
+                }
+
+                # Aplica as chaves corretas baseando-se na categoria
+                if categoria == 'epi':
+                    novo_item["quantidade_maxima"] = qtd_val
+                else:
+                    novo_item["estoque_minimo"] = qtd_val
+                    novo_item["preco"] = preco_val  # Salva o preço no escritório
+
+                materiais.append(novo_item)
+                codigos_existentes.add(codigo.lower())
+                novos_cadastrados += 1
 
         salvar_materiais(materiais)
         flash(f'Sucesso! {novos_cadastrados} novos materiais foram importados.', 'success')

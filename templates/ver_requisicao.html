@@ -4,7 +4,16 @@
 
 {% block content %}
     <div class="requisicao-card" id="area-impressao">
-        <div class="card-header">
+        
+        <!-- Cabeçalho de Impressão (Exibido APENAS no papel/PDF) -->
+        <div class="print-header print-only">
+            <div style="text-align: center; border-bottom: 2px solid #0a2540; padding-bottom: 10px; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #0a2540; font-size: 20px;">COMPROVANTE DE REQUISIÇÃO #{{ requisicao.id }}</h2>
+                <p style="margin: 4px 0 0 0; color: #64748b; font-size: 13px;">CoreStock - Gestão de Almoxarifado</p>
+            </div>
+        </div>
+
+        <div class="card-header no-print">
             <div>
                 <h2>
                     Requisição #{{ requisicao.id }}
@@ -99,11 +108,11 @@
         {% set eh_maf = 'maf porto real' in depto_lower or 'maf betim' in depto_lower %}
 
         <!-- Formulário de Separação / Recebimento e Despacho -->
-        <form action="{{ url_for('concluir_requisicao') }}" method="POST" id="formSeparacao">
+        <form action="{{ url_for('concluir_requisicao') }}" method="POST" id="formSeparacao" autocomplete="off">
             <input type="hidden" name="requisicao_id" value="{{ requisicao.id }}">
             <input type="hidden" name="acao_final" id="acao_final" value="{% if requisicao.status == 'pendente' %}separar{% elif eh_maf %}concluir_direto{% else %}concluir{% endif %}">
 
-            <!-- Campo de Nota Fiscal exibido APENAS na fase de despacho (status 'separado') para MAF -->
+            <!-- Campo de Nota Fiscal exibido APENAS na fase de despacho para MAF -->
             {% if requisicao.status == 'separado' and session.user.permissao in ['admin', 'administrador', 'abastecedor'] and eh_maf %}
             {% set nf_campo = requisicao.nota_fiscal or requisicao.nota_fiscal_transferencia or '' %}
             {% set nf_valor = '' if nf_campo.strip() == '-' else nf_campo %}
@@ -117,6 +126,7 @@
                        value="{{ nf_valor }}" 
                        placeholder="Ex: NF-125874" 
                        required
+                       autocomplete="off"
                        style="padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; max-width: 320px; font-size: 14px; font-weight: 600; color: #0a2540;">
                 <small style="display: block; color: #0369a1; margin-top: 6px; font-size: 12px;">
                     ⚠️ Campo obrigatório para concluir a transferência do departamento <strong>{{ requisicao.departamento }}</strong>.
@@ -127,7 +137,7 @@
             <h3 class="section-title">
                 Itens da Solicitação 
                 {% if requisicao.tipo_requisicao == 'devolucao' %}
-                    <small style="color: #16a34a; font-size: 13px;">(Quantidades a serem somadas ao estoque)</small>
+                    <small style="color: #16a34a; font-size: 13px;" class="no-print">(Quantidades a serem somadas ao estoque)</small>
                 {% endif %}
             </h3>
 
@@ -154,9 +164,9 @@
                         <td>
                             {{ item.nome or item.descricao }}
                             {% if qtd_sep == 0 %}
-                                <span class="tag-sem-estoque">(Não Devolvido / Zerado)</span>
+                                <span class="tag-sem-estoque no-print">(Não Devolvido / Zerado)</span>
                             {% elif qtd_sep < qtd_sol %}
-                                <span class="tag-parcial">(Devolução Parcial)</span>
+                                <span class="tag-parcial no-print">(Devolução Parcial)</span>
                             {% endif %}
                         </td>
                         
@@ -186,12 +196,12 @@
                 </tbody>
             </table>
 
-            <!-- Modal de Autenticação APENAS para Solicitantes de outros departamentos na fase de Despacho -->
+            <!-- Modal de Autenticação sem preenchimento automático para o Solicitante -->
             {% if not eh_maf and requisicao.status == 'separado' %}
-            <div id="modalAuthDespacho" class="modal-backdrop" style="display: none;">
+            <div id="modalAuthDespacho" class="modal-backdrop no-print" style="display: none;">
                 <div class="modal-box">
                     <h3 style="margin-top: 0; color: #0a2540;">🔒 Autenticação do Solicitante</h3>
-                    <p style="font-size: 13.5px; color: #64748b;">Informe o usuário e a senha do solicitante <strong>{{ requisicao.nome }}</strong> para assinar a entrega:</p>
+                    <p style="font-size: 13.5px; color: #64748b;">O solicitante <strong>{{ requisicao.nome }}</strong> deve digitar seu usuário e senha para assinar a entrega:</p>
                     
                     <div style="margin-bottom: 12px; text-align: left;">
                         <label style="font-size: 12px; font-weight: bold; color: #334155;">Usuário do Solicitante:</label>
@@ -199,8 +209,11 @@
                                name="auth_usuario" 
                                id="auth_usuario" 
                                class="form-input" 
-                               value="{{ requisicao.username or requisicao.usuario or '' }}" 
-                               placeholder="Ex: lucas.prado">
+                               value="" 
+                               placeholder="Digite o usuário do solicitante"
+                               autocomplete="off"
+                               readonly
+                               onfocus="this.removeAttribute('readonly');">
                     </div>
 
                     <div style="margin-bottom: 20px; text-align: left;">
@@ -209,7 +222,11 @@
                                name="auth_senha" 
                                id="auth_senha" 
                                class="form-input" 
-                               placeholder="Senha de acesso" 
+                               value="" 
+                               placeholder="••••••••" 
+                               autocomplete="new-password"
+                               readonly
+                               onfocus="this.removeAttribute('readonly');"
                                onkeydown="tratarEnterModal(event)">
                     </div>
 
@@ -221,7 +238,21 @@
             </div>
             {% endif %}
 
-            <!-- Rodapé de Ações -->
+            <!-- Campos de Assinatura para Impressão (Exibidos APENAS no papel/PDF) -->
+            <div class="print-only print-signatures">
+                <div class="signature-line">
+                    __________________________________________<br>
+                    <strong>Assinatura do Solicitante</strong><br>
+                    {{ requisicao.nome }}
+                </div>
+                <div class="signature-line">
+                    __________________________________________<br>
+                    <strong>Visto do Almoxarifado</strong><br>
+                    CoreStock Control
+                </div>
+            </div>
+
+            <!-- Rodapé de Ações de Tela -->
             <div class="actions-bar no-print">
                 <a href="{{ request.referrer or url_for('historico') }}" class="btn btn-secondary">
                     ← Voltar
@@ -261,132 +292,232 @@
     </div>
 
     <style>
+    /* Estilos Padrão de Tela */
+    .print-only {
+        display: none !important;
+    }
+
+    .requisicao-card {
+        max-width: 900px;
+        margin: 20px auto;
+        background: #ffffff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        border: 1px solid #cbd5e1;
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #e2e8f0;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
+
+    .card-header h2 { margin: 0; color: #0a2540; font-size: 1.5em; display: flex; align-items: center; gap: 10px; }
+
+    .badge-devolucao {
+        font-size: 12px;
+        background-color: #dcfce7;
+        color: #15803d;
+        border: 1px solid #86efac;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-weight: 700;
+    }
+
+    .alert-devolucao-box {
+        background-color: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        color: #166534;
+        padding: 14px 18px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 13.5px;
+    }
+
+    .alert-devolucao-box p {
+        margin: 4px 0 0 0;
+        font-size: 13px;
+        color: #15803d;
+    }
+
+    .status-badge {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: bold;
+    }
+
+    .status-pendente { background-color: #fef3c7; color: #92400e; }
+    .status-separado { background-color: #e0f2fe; color: #075985; }
+    .status-concluida { background-color: #dcfce7; color: #166534; }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        margin-bottom: 25px;
+        background-color: #f8fafc;
+        padding: 18px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .info-item strong { display: block; font-size: 12px; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
+    .info-item span { font-size: 14.5px; color: #1e293b; font-weight: 600; }
+
+    .table-detalhes { width: 100%; border-collapse: collapse; margin-bottom: 25px; border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1; }
+    .table-detalhes th, .table-detalhes td { border-bottom: 1px solid #e2e8f0; padding: 12px; text-align: left; }
+    .table-detalhes th { background-color: #0a2540; color: #ffffff; }
+
+    .input-qty-direct { width: 75px; padding: 6px; text-align: center; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: bold; }
+
+    .actions-bar { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+
+    .btn { padding: 9px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-secondary { background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }
+    .btn-outline { background-color: #ffffff; color: #0284c7; border: 1px solid #cbd5e1; }
+    .btn-success-action { background-color: #16a34a; color: white; }
+
+    .modal-backdrop {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(10, 37, 64, 0.6);
+        backdrop-filter: blur(4px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    .modal-box {
+        background: #ffffff;
+        padding: 25px;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        border: 1px solid #cbd5e1;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 9px 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 14px;
+        margin-top: 4px;
+        box-sizing: border-box;
+        background-color: #ffffff;
+    }
+
+    /* ==========================================================================
+       ISOLAMENTO COMPLETO DE IMPRESSÃO
+       ========================================================================== */
+    @media print {
+        /* 1. Oculta absolutamente TUDO do body e do base.html por padrão */
+        body * {
+            visibility: hidden !important;
+        }
+
+        /* 2. Oculta backgrounds, gradientes, logos e decorações do site */
+        body, .container, .bg-shape-1, .bg-shape-2, .header-bar, .nav-bar {
+            background: #ffffff !important;
+            box-shadow: none !important;
+            border: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        /* 3. Torna visível APENAS o cartão de requisição e seus filhos */
+        .requisicao-card, .requisicao-card * {
+            visibility: visible !important;
+        }
+
+        /* 4. Posiciona o cartão no topo absoluto da folha */
         .requisicao-card {
-            max-width: 900px;
-            margin: 20px auto;
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            border: 1px solid #cbd5e1;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 10px !important;
+            border: none !important;
+            box-shadow: none !important;
+            background: #ffffff !important;
         }
 
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
+        /* 5. Esconde botões e elementos marcados com no-print */
+        .no-print {
+            display: none !important;
         }
 
-        .card-header h2 { margin: 0; color: #0a2540; font-size: 1.5em; display: flex; align-items: center; gap: 10px; }
-
-        .badge-devolucao {
-            font-size: 12px;
-            background-color: #dcfce7;
-            color: #15803d;
-            border: 1px solid #86efac;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-weight: 700;
+        /* 6. Ativa exibição de elementos exclusivos de impressão */
+        .print-only {
+            display: block !important;
         }
 
-        .alert-devolucao-box {
-            background-color: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            color: #166534;
-            padding: 14px 18px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 13.5px;
-        }
-
-        .alert-devolucao-box p {
-            margin: 4px 0 0 0;
-            font-size: 13px;
-            color: #15803d;
-        }
-
-        .status-badge {
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: bold;
-        }
-
-        .status-pendente { background-color: #fef3c7; color: #92400e; }
-        .status-separado { background-color: #e0f2fe; color: #075985; }
-        .status-concluida { background-color: #dcfce7; color: #166534; }
-
+        /* 7. Ajusta cores de tabelas e textos para nitidez no papel */
         .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-            margin-bottom: 25px;
-            background-color: #f8fafc;
-            padding: 18px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
+            background: #ffffff !important;
+            border: 1px solid #000000 !important;
+            grid-template-columns: repeat(2, 1fr) !important;
         }
 
-        .info-item strong { display: block; font-size: 12px; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
-        .info-item span { font-size: 14.5px; color: #1e293b; font-weight: 600; }
-
-        .table-detalhes { width: 100%; border-collapse: collapse; margin-bottom: 25px; border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1; }
-        .table-detalhes th, .table-detalhes td { border-bottom: 1px solid #e2e8f0; padding: 12px; text-align: left; }
-        .table-detalhes th { background-color: #0a2540; color: #ffffff; }
-
-        .input-qty-direct { width: 75px; padding: 6px; text-align: center; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: bold; }
-
-        .actions-bar { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 20px; }
-
-        .btn { padding: 9px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
-        .btn-secondary { background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }
-        .btn-outline { background-color: #ffffff; color: #0284c7; border: 1px solid #cbd5e1; }
-        .btn-success-action { background-color: #16a34a; color: white; }
-
-        .modal-backdrop {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(10, 37, 64, 0.6);
-            backdrop-filter: blur(4px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
+        .table-detalhes {
+            border: 1px solid #000000 !important;
+            width: 100% !important;
         }
 
-        .modal-box {
-            background: #ffffff;
-            padding: 25px;
-            border-radius: 12px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            border: 1px solid #cbd5e1;
+        .table-detalhes th, .table-detalhes td {
+            border: 1px solid #000000 !important;
+            color: #000000 !important;
+            font-size: 12pt !important;
         }
 
-        .form-input {
-            width: 100%;
-            padding: 9px 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            font-size: 14px;
-            margin-top: 4px;
-            box-sizing: border-box;
+        .table-detalhes th {
+            background-color: #f1f5f9 !important;
+            color: #000000 !important;
         }
-    </style>
+
+        /* 8. Blocos de Assinatura */
+        .print-signatures {
+            display: flex !important;
+            justify-content: space-around;
+            margin-top: 50px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .signature-line {
+            width: 40%;
+            line-height: 1.6;
+            color: #000000 !important;
+        }
+    }
+</style>
 
     <script>
         function abrirModalAuth() {
             const el = document.getElementById('modalAuthDespacho');
             if (el) {
+                const userInp = document.getElementById('auth_usuario');
+                const passInp = document.getElementById('auth_senha');
+
+                if (userInp) {
+                    userInp.value = '';
+                    userInp.setAttribute('readonly', 'readonly');
+                }
+                if (passInp) {
+                    passInp.value = '';
+                    passInp.setAttribute('readonly', 'readonly');
+                }
+
                 el.style.display = 'flex';
-                setTimeout(() => {
-                    const pass = document.getElementById('auth_senha');
-                    if (pass) pass.focus();
-                }, 100);
             }
         }
 

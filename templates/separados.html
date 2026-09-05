@@ -48,7 +48,7 @@
                 
                 <td>
                     {% if eh_maf or eh_epi %}
-                        <!-- Botão para MAF / EPI: Despacho via Nota Fiscal (Sem pré-preenchimento de traço) -->
+                        <!-- Botão para MAF / EPI: Despacho via Nota Fiscal -->
                         <button type="button" 
                                 class="btn-primary" 
                                 data-id="{{ requisicao.id }}" 
@@ -57,11 +57,10 @@
                             📄 Despachar NF
                         </button>
                     {% else %}
-                        <!-- Botão para Outros Departamentos: Finalização com Usuário e Senha -->
+                        <!-- Botão para Outros Departamentos: Finalização com Usuário e Senha (Sem pré-preenchimento) -->
                         <button type="button" 
                                 class="btn-success" 
                                 data-id="{{ requisicao.id }}" 
-                                data-username="{{ requisicao.username or requisicao.usuario or '' }}" 
                                 onclick="abrirModalSolicitante(this)">
                             🚚 Finalizar Entrega
                         </button>
@@ -82,13 +81,13 @@
             <h3 class="modal-title">Despacho de Requisição</h3>
             <p class="modal-subtitle">Informe ou confirme o número da Nota Fiscal para concluir o despacho da solicitação.</p>
             
-            <form action="{{ url_for('concluir_requisicao') }}" method="post">
+            <form action="{{ url_for('concluir_requisicao') }}" method="post" autocomplete="off">
                 <input type="hidden" name="requisicao_id" id="modal_maf_requisicao_id">
                 <input type="hidden" name="acao_final" value="concluir_direto">
                 
                 <div class="form-group-modal">
                     <label>Número da Nota Fiscal (Transferência/Saída):</label>
-                    <input type="text" name="nota_fiscal" id="modal_maf_nota_fiscal" placeholder="Ex: NF-102938" required>
+                    <input type="text" name="nota_fiscal" id="modal_maf_nota_fiscal" placeholder="Ex: NF-102938" required autocomplete="off">
                 </div>
 
                 <div class="modal-actions">
@@ -99,24 +98,40 @@
         </div>
     </div>
 
-    <!-- Modal 2: Autenticação exclusiva por Usuário e Senha (Demais Departamentos) -->
+    <!-- Modal 2: Autenticação por Usuário e Senha sem preenchimento automático -->
     <div id="modalSolicitante" class="modal-backdrop">
         <div class="modal-box">
             <h3 class="modal-title">Autenticação do Solicitante</h3>
-            <p class="modal-subtitle">Informe o usuário e a senha do solicitante para assinar a entrega presencial.</p>
+            <p class="modal-subtitle">O solicitante deve estar presente e digitar seu usuário e senha para assinar a entrega presencial.</p>
             
-            <form action="{{ url_for('concluir_requisicao') }}" method="post">
+            <form action="{{ url_for('concluir_requisicao') }}" method="post" autocomplete="off">
                 <input type="hidden" name="requisicao_id" id="modal_solic_requisicao_id">
                 <input type="hidden" name="acao_final" value="concluir">
                 
                 <div class="form-group-modal">
-                    <label>Usuário do Solicitante:</label>
-                    <input type="text" name="auth_usuario" id="modal_solic_usuario" placeholder="Ex: usuario.sobrenome" required>
+                    <label>Usuário / Registro do Solicitante:</label>
+                    <input type="text" 
+                           name="auth_usuario" 
+                           id="modal_solic_usuario" 
+                           value="" 
+                           placeholder="Digite o usuário do solicitante" 
+                           required 
+                           autocomplete="off" 
+                           readonly 
+                           onfocus="this.removeAttribute('readonly');">
                 </div>
 
                 <div class="form-group-modal">
                     <label>Senha do Solicitante:</label>
-                    <input type="password" name="auth_senha" placeholder="••••••••" required>
+                    <input type="password" 
+                           name="auth_senha" 
+                           id="modal_solic_senha" 
+                           value="" 
+                           placeholder="••••••••" 
+                           required 
+                           autocomplete="new-password" 
+                           readonly 
+                           onfocus="this.removeAttribute('readonly');">
                 </div>
 
                 <div class="modal-actions">
@@ -132,7 +147,6 @@
             const requisicaoId = botao.getAttribute('data-id');
             let notaFiscalAtual = (botao.getAttribute('data-nf') || '').trim();
 
-            // Trata traço e nulos para deixar o campo totalmente limpo
             if (notaFiscalAtual === '-' || notaFiscalAtual.toLowerCase() === 'none') {
                 notaFiscalAtual = '';
             }
@@ -141,7 +155,6 @@
             document.getElementById('modal_maf_nota_fiscal').value = notaFiscalAtual;
             document.getElementById('modalMAF').style.display = 'flex';
             
-            // Coloca o foco diretamente no campo da nota fiscal
             setTimeout(() => {
                 const inputNF = document.getElementById('modal_maf_nota_fiscal');
                 if (inputNF) inputNF.focus();
@@ -154,10 +167,22 @@
 
         function abrirModalSolicitante(botao) {
             const requisicaoId = botao.getAttribute('data-id');
-            const username = botao.getAttribute('data-username');
 
             document.getElementById('modal_solic_requisicao_id').value = requisicaoId;
-            document.getElementById('modal_solic_usuario').value = username || '';
+            
+            // Garante que os campos venham vazios sem nenhum preenchimento prévio
+            const inputUser = document.getElementById('modal_solic_usuario');
+            const inputPass = document.getElementById('modal_solic_senha');
+            
+            if (inputUser) {
+                inputUser.value = '';
+                inputUser.setAttribute('readonly', 'readonly');
+            }
+            if (inputPass) {
+                inputPass.value = '';
+                inputPass.setAttribute('readonly', 'readonly');
+            }
+
             document.getElementById('modalSolicitante').style.display = 'flex';
         }
 
@@ -302,6 +327,7 @@
             box-sizing: border-box;
             font-size: 14px;
             outline: none;
+            background-color: #ffffff;
         }
 
         .form-group-modal input:focus {

@@ -1233,5 +1233,30 @@
         "data_conclusao": "04/09/2026 19:31",
         "separado_por": "Teste abastecedor",
         "finalizado_por": "Teste abastecedor"
+    },
+    {
+        "id": 54,
+        "nome": "Lucas Prado",
+        "username": "lucas.prado",
+        "registro": "7431",
+        "departamento": "Log\u00edstica",
+        "categoria": "escritorio",
+        "tipo_requisicao": "saida",
+        "data": "05/09/2026 07:43",
+        "status": "concluida",
+        "nota_fiscal": "-",
+        "itens": [
+            {
+                "codigo": "1015",
+                "nome": "Tesoura de M\u00e9dia em A\u00e7o Inox 17cm",
+                "quantidade": 2,
+                "quantidade_solicitada": 2,
+                "quantidade_separada": 0
+            }
+        ],
+        "data_retirada": "05/09/2026 07:51",
+        "separado_por": "Lucas Prado",
+        "data_conclusao": "05/09/2026 07:52",
+        "finalizado_por": "Lucas Prado"
     }
 ]

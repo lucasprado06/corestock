@@ -54,7 +54,7 @@
         "permissao": "admin",
         "perfil": "admin",
         "pode_solicitar_epi": true,
-        "senha": "scrypt:32768:8:1$yfBKOyw7TZN84ODL$a50b1b6abdf1a65896ef3a68947526668aebc001ace75605ec7e6e20410d72a832c3095c6e0eb6dfe4da96375b7d1e775873c3fc4c02a80adabb2e77c80669bf",
+        "senha": "scrypt:32768:8:1$CGVXDBjkLiM2rdq5$d73193c10119db4e48e5716314cd092d85984b1cff9025fd0849fc7f6e735d8360492d24ec4dad3db1b503a0c7cbb3b6ef73a465f33241fdfb916a60292833d1",
         "primeiro_acesso": false
     }
 ]
